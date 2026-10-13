@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 368" width="500" height="368">
+<rect width="500" height="368" rx="12" fill="#1b232d"/>
+<text x="250" y="18" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="11" fill="#e9edf1" text-anchor="middle">Relay Chain  (S station; towers must link back to it; links are two-way)</text><rect x="10" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(16 30)"><rect width="100" height="100" fill="#55705a"/><circle cx="50" cy="8" r="16" fill="#7fe0d0" opacity="0.18"/>
+<ellipse cx="55" cy="88" rx="40" ry="9" fill="rgba(12,18,26,0.28)"/>
+<path d="M32 60 L47 8 M68 60 L53 8" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M34.5 52 L63.5 40 M65.5 52 L36.5 40 M37 40 L61 28 M63 40 L39 28 M40 28 L58 18 M60 28 L42 18" stroke="#8d95a1" stroke-width="3" stroke-linecap="round"/>
+<rect x="10" y="52" width="80" height="14" rx="4" fill="#5b6b7c"/>
+<rect x="14" y="64" width="72" height="22" rx="3" fill="#d8cfc0"/>
+<rect x="14" y="82" width="72" height="4" fill="#c9bca6"/>
+<rect x="44" y="70" width="12" height="16" rx="2" fill="#7a5a44"/>
+<rect x="22" y="70" width="14" height="8" rx="1.5" fill="#ffd27a"/><rect x="64" y="70" width="14" height="8" rx="1.5" fill="#ffd27a"/>
+<circle cx="50" cy="8" r="6" fill="#7fe0d0"/>
+<circle cx="50" cy="8" r="9.5" fill="none" stroke="#7fe0d0" stroke-width="1.8" opacity="0.7"/></g><text x="66" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">Station (S): always live</text><rect x="130" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(136 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#8d95a1" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#e8ebef" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="12" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="10" r="5" fill="#7fe0d0"/></g></g><text x="186" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">Live tower: waves on</text><rect x="250" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(256 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#555e6a"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#6b7480"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#8d95a1" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#555e6a" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#8d95a1" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="5" fill="none" stroke="#9aa7b5" stroke-width="2"/><g transform="translate(80 80)"><circle r="12" fill="#26313d"/><path d="M-7 3 L-2 -2 M2 2 L7 -3" stroke="#9aa7b5" stroke-width="3" stroke-linecap="round"/></g></g></g><text x="306" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">Dead tower: grey, no waves</text><rect x="370" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(376 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="0.55">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#8d95a1" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#e8ebef" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="12" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="10" r="5" fill="#7fe0d0"/></g></g><text x="426" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">Ghost: would be live</text><rect x="24" y="184" width="452" height="132" rx="10" fill="#26313d"/><rect x="30" y="190" width="40" height="40" fill="#506a55"/><rect x="70" y="190" width="40" height="40" fill="#55705a"/><rect x="110" y="190" width="40" height="40" fill="#506a55"/><rect x="150" y="190" width="40" height="40" fill="#55705a"/><rect x="190" y="190" width="40" height="40" fill="#506a55"/><rect x="230" y="190" width="40" height="40" fill="#55705a"/><rect x="270" y="190" width="40" height="40" fill="#506a55"/><rect x="310" y="190" width="40" height="40" fill="#55705a"/><rect x="350" y="190" width="40" height="40" fill="#506a55"/><rect x="390" y="190" width="40" height="40" fill="#55705a"/><rect x="430" y="190" width="40" height="40" fill="#506a55"/><rect x="30" y="230" width="40" height="40" fill="#55705a"/><rect x="70" y="230" width="40" height="40" fill="#506a55"/><rect x="110" y="230" width="40" height="40" fill="#55705a"/><rect x="150" y="230" width="40" height="40" fill="#506a55"/><rect x="190" y="230" width="40" height="40" fill="#55705a"/><rect x="230" y="230" width="40" height="40" fill="#506a55"/><rect x="270" y="230" width="40" height="40" fill="#55705a"/><rect x="310" y="230" width="40" height="40" fill="#506a55"/><rect x="350" y="230" width="40" height="40" fill="#55705a"/><rect x="390" y="230" width="40" height="40" fill="#506a55"/><rect x="430" y="230" width="40" height="40" fill="#55705a"/><rect x="30" y="270" width="40" height="40" fill="#506a55"/><rect x="70" y="270" width="40" height="40" fill="#55705a"/><rect x="110" y="270" width="40" height="40" fill="#506a55"/><rect x="150" y="270" width="40" height="40" fill="#55705a"/><rect x="190" y="270" width="40" height="40" fill="#506a55"/><rect x="230" y="270" width="40" height="40" fill="#55705a"/><rect x="270" y="270" width="40" height="40" fill="#506a55"/><rect x="310" y="270" width="40" height="40" fill="#55705a"/><rect x="350" y="270" width="40" height="40" fill="#506a55"/><rect x="390" y="270" width="40" height="40" fill="#55705a"/><rect x="430" y="270" width="40" height="40" fill="#506a55"/><rect x="350" y="190" width="40" height="120" fill="#9aa0a8"/><rect x="350" y="190" width="40" height="2" fill="#b2b7be"/><line x1="90" y1="234.8" x2="210" y2="234.8" stroke="#7fe0d0" stroke-opacity="0.12" stroke-width="4.8" stroke-linecap="round"/>
+<line x1="90" y1="234.8" x2="210" y2="234.8" stroke="#7fe0d0" stroke-opacity="0.6" stroke-width="1.7999999999999998" stroke-linecap="round"/>
+<circle cx="126" cy="234.8" r="1.6" fill="#d8fff9"/>
+<circle cx="180" cy="234.8" r="1.6" fill="#d8fff9"/><line x1="210" y1="234.8" x2="330" y2="234.8" stroke="#7fe0d0" stroke-opacity="0.12" stroke-width="4.8" stroke-linecap="round"/>
+<line x1="210" y1="234.8" x2="330" y2="234.8" stroke="#7fe0d0" stroke-opacity="0.6" stroke-width="1.7999999999999998" stroke-linecap="round"/>
+<circle cx="246" cy="234.8" r="1.6" fill="#d8fff9"/>
+<circle cx="300" cy="234.8" r="1.6" fill="#d8fff9"/><g transform="translate(70 230) scale(0.4)"><circle cx="50" cy="8" r="16" fill="#7fe0d0" opacity="0.18"/>
+<ellipse cx="55" cy="88" rx="40" ry="9" fill="rgba(12,18,26,0.28)"/>
+<path d="M32 60 L47 8 M68 60 L53 8" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M34.5 52 L63.5 40 M65.5 52 L36.5 40 M37 40 L61 28 M63 40 L39 28 M40 28 L58 18 M60 28 L42 18" stroke="#8d95a1" stroke-width="3" stroke-linecap="round"/>
+<rect x="10" y="52" width="80" height="14" rx="4" fill="#5b6b7c"/>
+<rect x="14" y="64" width="72" height="22" rx="3" fill="#d8cfc0"/>
+<rect x="14" y="82" width="72" height="4" fill="#c9bca6"/>
+<rect x="44" y="70" width="12" height="16" rx="2" fill="#7a5a44"/>
+<rect x="22" y="70" width="14" height="8" rx="1.5" fill="#ffd27a"/><rect x="64" y="70" width="14" height="8" rx="1.5" fill="#ffd27a"/>
+<circle cx="50" cy="8" r="6" fill="#7fe0d0"/>
+<circle cx="50" cy="8" r="9.5" fill="none" stroke="#7fe0d0" stroke-width="1.8" opacity="0.7"/></g><g transform="translate(190 230) scale(0.4)"><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#8d95a1" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#e8ebef" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="12" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="10" r="5" fill="#7fe0d0"/></g></g><g transform="translate(310 230) scale(0.4)"><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#8d95a1" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#e8ebef" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="12" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="10" r="5" fill="#7fe0d0"/></g></g><g transform="translate(430 230) scale(0.4)"><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#555e6a"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#6b7480"/>
+<path d="M33 70 L47 20 M67 70 L53 20" stroke="#8d95a1" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M35.6 62 L62.6 48 M64.4 62 L37.4 48 M37.4 48 L59.6 34 M62.6 48 L40.4 34" stroke="#555e6a" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M50 20 V10" stroke="#8d95a1" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="10" r="5" fill="none" stroke="#9aa7b5" stroke-width="2"/><g transform="translate(80 80)"><circle r="12" fill="#26313d"/><path d="M-7 3 L-2 -2 M2 2 L7 -3" stroke="#9aa7b5" stroke-width="3" stroke-linecap="round"/></g></g></g><text x="90" y="328" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">station</text><text x="210" y="328" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">live</text><text x="330" y="328" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">live</text><text x="450" y="328" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">dead (wall cuts it off)</text><text x="30" y="356" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="start">Relay link: solid teal 4.5% of tile, glow 12%, packets run both ways. House links stay dashed.</text>
+</svg>

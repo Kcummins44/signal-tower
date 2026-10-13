@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 340" width="500" height="340">
+<rect width="500" height="340" rx="12" fill="#1b232d"/>
+<text x="250" y="18" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="11" fill="#e9edf1" text-anchor="middle">Dish Tower  (faces N, E, S or W; tap to turn, turning is free)</text><rect x="10" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(16 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<rect x="46" y="42" width="8" height="28" rx="2" fill="#e8ebef"/><rect x="50" y="42" width="4" height="28" rx="1" fill="#c3cad3"/>
+<g transform="rotate(0 50 45)">
+  <ellipse cx="50" cy="40" rx="27" ry="12" fill="#a9b0ba"/>
+  <ellipse cx="50" cy="38" rx="26" ry="11" fill="#e8ebef"/>
+  <ellipse cx="50" cy="37" rx="18" ry="6.5" fill="#c3cad3"/>
+  <path d="M50 38 V16" stroke="#8d95a1" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="50" cy="15" r="9" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="15" r="4.5" fill="#7fe0d0"/>
+</g>
+<g transform="rotate(0 50 50)"><path d="M50 2 L43 10 H57 Z" fill="#7fe0d0" opacity="0.9"/></g>
+<g transform="translate(82 84)"><circle r="12" fill="#26313d"/><path d="M-5.5 -2 A6 6 0 1 1 -3 4.5" fill="none" stroke="#7fe0d0" stroke-width="2.4" stroke-linecap="round"/><path d="M-9 -4 L-5.5 -2.2 L-3.2 -5.6" fill="none" stroke="#7fe0d0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g></g><text x="66" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">N (placed)</text><rect x="130" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(136 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<rect x="46" y="42" width="8" height="28" rx="2" fill="#e8ebef"/><rect x="50" y="42" width="4" height="28" rx="1" fill="#c3cad3"/>
+<g transform="rotate(90 50 45)">
+  <ellipse cx="50" cy="40" rx="27" ry="12" fill="#a9b0ba"/>
+  <ellipse cx="50" cy="38" rx="26" ry="11" fill="#e8ebef"/>
+  <ellipse cx="50" cy="37" rx="18" ry="6.5" fill="#c3cad3"/>
+  <path d="M50 38 V16" stroke="#8d95a1" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="50" cy="15" r="9" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="15" r="4.5" fill="#7fe0d0"/>
+</g>
+<g transform="rotate(90 50 50)"><path d="M50 2 L43 10 H57 Z" fill="#7fe0d0" opacity="0.9"/></g>
+</g></g><text x="186" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">E</text><rect x="250" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(256 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<rect x="46" y="42" width="8" height="28" rx="2" fill="#e8ebef"/><rect x="50" y="42" width="4" height="28" rx="1" fill="#c3cad3"/>
+<g transform="rotate(180 50 45)">
+  <ellipse cx="50" cy="40" rx="27" ry="12" fill="#a9b0ba"/>
+  <ellipse cx="50" cy="38" rx="26" ry="11" fill="#e8ebef"/>
+  <ellipse cx="50" cy="37" rx="18" ry="6.5" fill="#c3cad3"/>
+  <path d="M50 38 V16" stroke="#8d95a1" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="50" cy="15" r="9" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="15" r="4.5" fill="#7fe0d0"/>
+</g>
+<g transform="rotate(180 50 50)"><path d="M50 2 L43 10 H57 Z" fill="#7fe0d0" opacity="0.9"/></g>
+</g></g><text x="306" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">S</text><rect x="370" y="24" width="112" height="112" rx="10" fill="#26313d"/><g transform="translate(376 30)"><rect width="100" height="100" fill="#55705a"/><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<rect x="46" y="42" width="8" height="28" rx="2" fill="#e8ebef"/><rect x="50" y="42" width="4" height="28" rx="1" fill="#c3cad3"/>
+<g transform="rotate(270 50 45)">
+  <ellipse cx="50" cy="40" rx="27" ry="12" fill="#a9b0ba"/>
+  <ellipse cx="50" cy="38" rx="26" ry="11" fill="#e8ebef"/>
+  <ellipse cx="50" cy="37" rx="18" ry="6.5" fill="#c3cad3"/>
+  <path d="M50 38 V16" stroke="#8d95a1" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="50" cy="15" r="9" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="15" r="4.5" fill="#7fe0d0"/>
+</g>
+<g transform="rotate(270 50 50)"><path d="M50 2 L43 10 H57 Z" fill="#7fe0d0" opacity="0.9"/></g>
+</g></g><text x="426" y="152" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="middle">W</text><text x="66" y="166" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="8" fill="#9aa7b5" text-anchor="start">rotate badge: on hover, on keyboard focus, and 3 s after first dish</text><rect x="64" y="194" width="192" height="132" rx="10" fill="#26313d"/><rect x="70" y="200" width="20" height="20" fill="#506a55"/><rect x="90" y="200" width="20" height="20" fill="#55705a"/><rect x="110" y="200" width="20" height="20" fill="#506a55"/><rect x="130" y="200" width="20" height="20" fill="#55705a"/><rect x="150" y="200" width="20" height="20" fill="#506a55"/><rect x="170" y="200" width="20" height="20" fill="#55705a"/><rect x="190" y="200" width="20" height="20" fill="#506a55"/><rect x="210" y="200" width="20" height="20" fill="#55705a"/><rect x="230" y="200" width="20" height="20" fill="#506a55"/><rect x="70" y="220" width="20" height="20" fill="#55705a"/><rect x="90" y="220" width="20" height="20" fill="#506a55"/><rect x="110" y="220" width="20" height="20" fill="#55705a"/><rect x="130" y="220" width="20" height="20" fill="#506a55"/><rect x="150" y="220" width="20" height="20" fill="#55705a"/><rect x="150" y="220" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="170" y="220" width="20" height="20" fill="#506a55"/><rect x="190" y="220" width="20" height="20" fill="#55705a"/><rect x="210" y="220" width="20" height="20" fill="#506a55"/><rect x="230" y="220" width="20" height="20" fill="#55705a"/><rect x="70" y="240" width="20" height="20" fill="#506a55"/><rect x="90" y="240" width="20" height="20" fill="#55705a"/><rect x="110" y="240" width="20" height="20" fill="#506a55"/><rect x="110" y="240" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="130" y="240" width="20" height="20" fill="#55705a"/><rect x="130" y="240" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="150" y="240" width="20" height="20" fill="#506a55"/><rect x="150" y="240" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="170" y="240" width="20" height="20" fill="#55705a"/><rect x="170" y="240" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="190" y="240" width="20" height="20" fill="#506a55"/><rect x="190" y="240" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="210" y="240" width="20" height="20" fill="#55705a"/><rect x="230" y="240" width="20" height="20" fill="#506a55"/><rect x="70" y="260" width="20" height="20" fill="#55705a"/><rect x="90" y="260" width="20" height="20" fill="#506a55"/><rect x="110" y="260" width="20" height="20" fill="#55705a"/><rect x="110" y="260" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="130" y="260" width="20" height="20" fill="#506a55"/><rect x="130" y="260" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="150" y="260" width="20" height="20" fill="#55705a"/><rect x="150" y="260" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="170" y="260" width="20" height="20" fill="#506a55"/><rect x="170" y="260" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="190" y="260" width="20" height="20" fill="#55705a"/><rect x="190" y="260" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="210" y="260" width="20" height="20" fill="#506a55"/><rect x="230" y="260" width="20" height="20" fill="#55705a"/><rect x="70" y="280" width="20" height="20" fill="#506a55"/><rect x="90" y="280" width="20" height="20" fill="#55705a"/><rect x="110" y="280" width="20" height="20" fill="#506a55"/><rect x="130" y="280" width="20" height="20" fill="#55705a"/><rect x="130" y="280" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="150" y="280" width="20" height="20" fill="#506a55"/><rect x="150" y="280" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="170" y="280" width="20" height="20" fill="#55705a"/><rect x="170" y="280" width="20" height="20" fill="rgba(127,224,208,0.16)"/><rect x="190" y="280" width="20" height="20" fill="#506a55"/><rect x="210" y="280" width="20" height="20" fill="#55705a"/><rect x="230" y="280" width="20" height="20" fill="#506a55"/><rect x="70" y="300" width="20" height="20" fill="#55705a"/><rect x="90" y="300" width="20" height="20" fill="#506a55"/><rect x="110" y="300" width="20" height="20" fill="#55705a"/><rect x="130" y="300" width="20" height="20" fill="#506a55"/><rect x="150" y="300" width="20" height="20" fill="#55705a"/><rect x="170" y="300" width="20" height="20" fill="#506a55"/><rect x="190" y="300" width="20" height="20" fill="#55705a"/><rect x="210" y="300" width="20" height="20" fill="#506a55"/><rect x="230" y="300" width="20" height="20" fill="#55705a"/><clipPath id="mb"><rect x="70" y="200" width="180" height="120"/></clipPath><g clip-path="url(#mb)"><path d="M160 310 L96.4 246.4 A90 90 0 0 1 223.6 246.4 Z" fill="none" stroke="rgba(127,224,208,0.55)" stroke-width="1.6" stroke-dasharray="2.4 2"/><path d="M160 310 L223.6 246.4 A90 90 0 0 1 223.6 373.6 Z" fill="none" stroke="rgba(233,237,241,0.25)" stroke-width="1.2" stroke-dasharray="1.5 2.5"/></g><g transform="translate(150 300) scale(0.2)"><g opacity="1">
+<ellipse cx="56" cy="82" rx="30" ry="10" fill="rgba(12,18,26,0.28)"/>
+<rect x="22" y="66" width="56" height="18" rx="6" fill="#a9b0ba"/>
+<rect x="22" y="64" width="56" height="14" rx="6" fill="#d5d9df"/>
+<rect x="46" y="42" width="8" height="28" rx="2" fill="#e8ebef"/><rect x="50" y="42" width="4" height="28" rx="1" fill="#c3cad3"/>
+<g transform="rotate(0 50 45)">
+  <ellipse cx="50" cy="40" rx="27" ry="12" fill="#a9b0ba"/>
+  <ellipse cx="50" cy="38" rx="26" ry="11" fill="#e8ebef"/>
+  <ellipse cx="50" cy="37" rx="18" ry="6.5" fill="#c3cad3"/>
+  <path d="M50 38 V16" stroke="#8d95a1" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="50" cy="15" r="9" fill="#7fe0d0" opacity="0.3"/><circle cx="50" cy="15" r="4.5" fill="#7fe0d0"/>
+</g>
+<g transform="rotate(0 50 50)"><path d="M50 2 L43 10 H57 Z" fill="#7fe0d0" opacity="0.9"/></g>
+</g></g><text x="266" y="230" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#e9edf1" text-anchor="start">Cone preview: 90 degrees, reach = radius + 2.</text><text x="266" y="246" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="start">Teal dashed wedge = current facing.</text><text x="266" y="260" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="start">Faint white wedge = where the next tap turns it</text><text x="266" y="272" font-family="ui-rounded, system-ui, -apple-system, sans-serif" font-size="9" fill="#9aa7b5" text-anchor="start">(hover or focus on a placed dish only).</text>
+</svg>
