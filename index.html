@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Tower</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <section id="select-screen" class="screen">
+      <h1>Signal Tower</h1>
+      <p class="tagline">Place towers so every house gets signal. Walls block it, and hills boost range.</p>
+      <div id="level-list" class="level-list"></div>
+      <div class="legend">
+        <span><i class="tile house"></i> House</span>
+        <span><i class="tile wall"></i> Wall</span>
+        <span><i class="tile hill"></i> Hill (+1 range)</span>
+        <span><i class="tile tower"></i> Tower</span>
+      </div>
+    </section>
+
+    <section id="game-screen" class="screen" hidden>
+      <header class="game-header">
+        <button id="back-btn" class="ghost">← Levels</button>
+        <h2 id="level-title"></h2>
+        <button id="reset-btn" class="ghost">Reset</button>
+      </header>
+      <p id="level-hint" class="hint"></p>
+      <div class="stats">
+        <div><span class="label">Towers left</span><span id="towers-left" class="value"></span></div>
+        <div><span class="label">Moves</span><span id="moves" class="value"></span></div>
+        <div><span class="label">Houses lit</span><span id="houses-lit" class="value"></span></div>
+      </div>
+      <div id="board" class="board" role="grid"></div>
+    </section>
+
+    <div id="win-screen" class="overlay" hidden>
+      <div class="win-card" role="dialog" aria-labelledby="win-title">
+        <h2 id="win-title">All houses connected!</h2>
+        <p id="win-stats"></p>
+        <div class="win-actions">
+          <button id="win-levels" class="ghost">Level select</button>
+          <button id="win-replay" class="ghost">Replay</button>
+          <button id="win-next">Next level →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="logic.js"></script>
+  <script src="levels.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
