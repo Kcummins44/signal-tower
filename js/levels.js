@@ -2,9 +2,13 @@
 const LEVELS = [
  {
   "name": "First Light",
-  "hint": "Tap a grass tile to build a tower. Light up every house.",
+  "hint": "Drag a tower from the tray, or tap a grass tile. Light up every house.",
   "radius": 2,
   "towers": 1,
+  "callout": {
+   "text": "Drag me onto the board.",
+   "at": "chip-mast"
+  },
   "stars": {
    "three": 1,
    "two": 3
@@ -441,6 +445,661 @@ const LEVELS = [
     [6,3],
     [2,5],
     [5,9]
+   ]
+  ]
+ },
+ {
+  "name": "Quiet Please",
+  "hint": "Keep your signal off the observatory. Walls and hills can shield it.",
+  "radius": 2,
+  "towers": 1,
+  "chapter": "quiet",
+  "callout": {
+   "text": "Needs quiet. No signal here.",
+   "at": "Q"
+  },
+  "stars": {
+   "three": 1,
+   "two": 3
+  },
+  "map": [
+   ".H.H.",
+   "H...H",
+   "..#..",
+   "..Q..",
+   "T...T"
+  ],
+  "solutions": [
+   [
+    [2,1]
+   ]
+  ]
+ },
+ {
+  "name": "Night Sky",
+  "hint": "The houses huddle by the observatory. Reach them from a distance.",
+  "radius": 2,
+  "towers": 2,
+  "chapter": "quiet",
+  "stars": {
+   "three": 2,
+   "two": 4
+  },
+  "map": [
+   "......",
+   "...###",
+   "HH.T.H",
+   ".HQ.##",
+   ".T...."
+  ],
+  "solutions": [
+   [
+    [1,1],
+    [4,2]
+   ]
+  ]
+ },
+ {
+  "name": "Stargazers",
+  "hint": "Two observatories. Let the walls do the shielding.",
+  "radius": 2,
+  "towers": 3,
+  "chapter": "quiet",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   "H.H.....",
+   ".T##.H#.",
+   "^^H...#.",
+   "H.#H..#.",
+   ".##..Q..",
+   ".##TH...",
+   ".##...Q.",
+   ".HT^^T.."
+  ],
+  "solutions": [
+   [
+    [0,2],
+    [4,2],
+    [3,7]
+   ]
+  ]
+ },
+ {
+  "name": "Deep Field",
+  "hint": "Hills cast quiet shadows too.",
+  "radius": 2,
+  "towers": 4,
+  "chapter": "quiet",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   ".##.H....",
+   "#.T^.....",
+   "###^...T.",
+   "..HT.H.^H",
+   ".......HH",
+   ".....H.T#",
+   "#####..T#",
+   "#HHQH..Q#",
+   "#....^^.#"
+  ],
+  "solutions": [
+   [
+    [3,2],
+    [7,3],
+    [5,6],
+    [1,8]
+   ]
+  ]
+ },
+ {
+  "name": "Office Hours",
+  "hint": "Office blocks need two towers. Light both lamps on the roof.",
+  "radius": 2,
+  "towers": 2,
+  "chapter": "busy",
+  "callout": {
+   "text": "Two towers must reach me.",
+   "at": "B"
+  },
+  "stars": {
+   "three": 2,
+   "two": 4
+  },
+  "map": [
+   "T.HH..",
+   ".#....",
+   "H#....",
+   "...B..",
+   "...T.."
+  ],
+  "solutions": [
+   [
+    [3,1],
+    [1,3]
+   ]
+  ]
+ },
+ {
+  "name": "Double Shift",
+  "hint": "Where do your circles cross?",
+  "radius": 2,
+  "towers": 3,
+  "chapter": "busy",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   "..T...H",
+   "##.H.B.",
+   "..###H.",
+   "..^^...",
+   ".T..B..",
+   "H.T....",
+   "..####."
+  ],
+  "solutions": [
+   [
+    [4,0],
+    [2,3],
+    [5,3]
+   ]
+  ]
+ },
+ {
+  "name": "Overtime",
+  "hint": "Every overlap has to earn its keep.",
+  "radius": 2,
+  "towers": 4,
+  "chapter": "busy",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   "T.......",
+   "..T.^^^H",
+   "#.T.....",
+   "#.H..B..",
+   ".#......",
+   ".#HT..^^",
+   "####B.#^",
+   "..H.H.#H"
+  ],
+  "solutions": [
+   [
+    [4,1],
+    [4,5],
+    [7,5],
+    [3,7]
+   ]
+  ]
+ },
+ {
+  "name": "Downtown",
+  "hint": "Three office blocks, five towers, one answer.",
+  "radius": 2,
+  "towers": 5,
+  "chapter": "busy",
+  "stars": {
+   "three": 5,
+   "two": 10
+  },
+  "map": [
+   ".#...TH..",
+   "H###..^..",
+   ".#.#.HH..",
+   ".....T.H.",
+   ".B..###.H",
+   "##.###...",
+   "...B...T.",
+   ".....T...",
+   "T..H.^..B"
+  ],
+  "solutions": [
+   [
+    [6,1],
+    [0,3],
+    [2,5],
+    [8,6],
+    [5,8]
+   ]
+  ]
+ },
+ {
+  "name": "First Dish",
+  "hint": "Dishes reach far, but only one way. Tap a dish to turn it. Turning is free.",
+  "radius": 1,
+  "towers": 0,
+  "dishes": 1,
+  "chapter": "dish",
+  "callout": {
+   "text": "Drag a dish out, then tap it to aim.",
+   "at": "chip-dish"
+  },
+  "stars": {
+   "three": 1,
+   "two": 3
+  },
+  "map": [
+   ".......",
+   "....HH.",
+   "....###",
+   ".T..H.T",
+   "......."
+  ],
+  "solutions": [
+   [
+    [2,1,1]
+   ]
+  ]
+ },
+ {
+  "name": "Narrow Beam",
+  "hint": "One tower, one dish. Each has its job.",
+  "radius": 1,
+  "towers": 1,
+  "dishes": 1,
+  "chapter": "dish",
+  "stars": {
+   "three": 2,
+   "two": 4
+  },
+  "map": [
+   "....H..",
+   "T......",
+   "....H..",
+   "..H#...",
+   "...#.H#",
+   "...#.T."
+  ],
+  "solutions": [
+   [
+    [4,1],
+    [3,2,2]
+   ]
+  ]
+ },
+ {
+  "name": "Long Shot",
+  "hint": "Send the dish down the long open side.",
+  "radius": 2,
+  "towers": 2,
+  "dishes": 1,
+  "chapter": "dish",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   ".H.H....",
+   ".###.T..",
+   "......T.",
+   ".HH.....",
+   ".......T",
+   ".##..H.#",
+   "H.#.H^^^"
+  ],
+  "solutions": [
+   [
+    [2,0],
+    [0,4],
+    [6,6,3]
+   ]
+  ]
+ },
+ {
+  "name": "Crosswind",
+  "hint": "Two dishes. Aim them past the walls.",
+  "radius": 2,
+  "towers": 2,
+  "dishes": 2,
+  "chapter": "dish",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   "....##....",
+   "HT..H#H..#",
+   "....T#....",
+   "H....^^.H.",
+   "...T.T..#.",
+   ".^....H.#.",
+   "T^......#.",
+   ".^..H..H#H",
+   "H..###...."
+  ],
+  "solutions": [
+   [
+    [6,3],
+    [1,5,0],
+    [1,7],
+    [8,8,0]
+   ]
+  ]
+ },
+ {
+  "name": "First Relay",
+  "hint": "Towers only work when they link back to the station. Build a chain.",
+  "radius": 2,
+  "towers": 2,
+  "chapter": "relay",
+  "callout": {
+   "text": "Start your chain here.",
+   "at": "S"
+  },
+  "stars": {
+   "three": 2,
+   "two": 4
+  },
+  "map": [
+   "...S..",
+   "...##.",
+   ".....T",
+   "......",
+   "..HH.."
+  ],
+  "solutions": [
+   [
+    [2,1],
+    [2,3]
+   ]
+  ]
+ },
+ {
+  "name": "Hand to Hand",
+  "hint": "A tower can carry the chain without lighting a house.",
+  "radius": 2,
+  "towers": 3,
+  "chapter": "relay",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   ".S...H..",
+   "....HT..",
+   ".T^^^#..",
+   ".H...#..",
+   "..T.#...",
+   "....#...",
+   ".#....H."
+  ],
+  "solutions": [
+   [
+    [3,2],
+    [3,5],
+    [4,6]
+   ]
+  ]
+ },
+ {
+  "name": "Chain Gang",
+  "hint": "Hills make good stepping stones.",
+  "radius": 2,
+  "towers": 4,
+  "chapter": "relay",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   "....S....",
+   "..#####.T",
+   "..#.....H",
+   ".^#.T^..H",
+   ".^..H^H..",
+   ".^....H.T",
+   "##....T..",
+   "...H...##"
+  ],
+  "solutions": [
+   [
+    [6,0],
+    [7,1],
+    [5,3],
+    [3,5]
+   ]
+  ]
+ },
+ {
+  "name": "Long Haul",
+  "hint": "The station is in the corner. Carry the signal across town.",
+  "radius": 2,
+  "towers": 5,
+  "chapter": "relay",
+  "stars": {
+   "three": 5,
+   "two": 10
+  },
+  "map": [
+   "T.T...###",
+   "H..H..###",
+   "##.......",
+   ".H..H.T..",
+   "....T....",
+   "...#H....",
+   "T..#.....",
+   ".....##..",
+   ".SH.H.#^."
+  ],
+  "solutions": [
+   [
+    [2,1],
+    [2,3],
+    [2,5],
+    [2,7],
+    [4,7]
+   ]
+  ]
+ },
+ {
+  "name": "First Bounce",
+  "hint": "Signal bounces off panels. Aim a tower at one to reach round corners.",
+  "radius": 2,
+  "towers": 1,
+  "chapter": "panel",
+  "callout": {
+   "text": "Bounce signal off me.",
+   "at": "/"
+  },
+  "stars": {
+   "three": 1,
+   "two": 3
+  },
+  "map": [
+   "..T...",
+   "...##.",
+   ".../H#",
+   ".H..#.",
+   "...H..",
+   ".....T"
+  ],
+  "solutions": [
+   [
+    [3,3]
+   ]
+  ]
+ },
+ {
+  "name": "Around the Corner",
+  "hint": "The bounced path counts in full. Stand close to the panel.",
+  "radius": 2,
+  "towers": 2,
+  "chapter": "panel",
+  "stars": {
+   "three": 2,
+   "two": 4
+  },
+  "map": [
+   "HH....",
+   "......",
+   "..##.#",
+   ".H..LH",
+   "...###",
+   "..T..."
+  ],
+  "solutions": [
+   [
+    [1,1],
+    [4,2]
+   ]
+  ]
+ },
+ {
+  "name": "Glass Garden",
+  "hint": "Two panels, two sealed pockets.",
+  "radius": 2,
+  "towers": 3,
+  "chapter": "panel",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   "^....T/.",
+   "...####T",
+   "...H...H",
+   "/H..####",
+   ".#...H.#",
+   ".##...T#",
+   "H....HH.",
+   "........"
+  ],
+  "solutions": [
+   [
+    [5,2],
+    [0,4],
+    [5,5]
+   ]
+  ]
+ },
+ {
+  "name": "Hall of Mirrors",
+  "hint": "Three panels. Not every one is useful.",
+  "radius": 2,
+  "towers": 3,
+  "chapter": "panel",
+  "stars": {
+   "three": 3,
+   "two": 6
+  },
+  "map": [
+   "H.H......",
+   "....H^^^.",
+   "..H##.T..",
+   "....#.../",
+   "TL.H#H##.",
+   "...H#T.#.",
+   "#..L^....",
+   "#.##^..#.",
+   "#...^.H#T"
+  ],
+  "solutions": [
+   [
+    [1,1],
+    [5,1],
+    [4,6]
+   ]
+  ]
+ },
+ {
+  "name": "Rush and Hush",
+  "hint": "An office next to an observatory. Aim carefully.",
+  "radius": 2,
+  "towers": 3,
+  "dishes": 1,
+  "chapter": "mixed",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   "..T....H.",
+   "^^.T##...",
+   "...^B....",
+   "T..^Q....",
+   "...^.....",
+   ".#.#H..T.",
+   ".#H#....#",
+   "H...H.H..",
+   "H........"
+  ],
+  "solutions": [
+   [
+    [6,2],
+    [5,3,0],
+    [5,6],
+    [1,7]
+   ]
+  ]
+ },
+ {
+  "name": "Mirror Relay",
+  "hint": "Chain from the station, then bounce into the corner.",
+  "radius": 2,
+  "towers": 4,
+  "chapter": "mixed",
+  "stars": {
+   "three": 4,
+   "two": 8
+  },
+  "map": [
+   "..HL.....",
+   "../.....S",
+   "..HHH.###",
+   "......^^H",
+   "T.T...#H.",
+   ".#....###",
+   ".#.......",
+   ".#.T...T.",
+   "........."
+  ],
+  "solutions": [
+   [
+    [3,1],
+    [4,1],
+    [6,1],
+    [6,3]
+   ]
+  ]
+ },
+ {
+  "name": "Grand Broadcast",
+  "hint": "Station, dish and office block. Everything you have learned.",
+  "radius": 2,
+  "towers": 4,
+  "dishes": 1,
+  "chapter": "mixed",
+  "stars": {
+   "three": 5,
+   "two": 10
+  },
+  "map": [
+   "....##....",
+   ".H.H.#....",
+   "H.T..#....",
+   "...H...HT.",
+   ".....##^HT",
+   ".......^#.",
+   "......^.#.",
+   ".B......#.",
+   ".##S.T..#."
+  ],
+  "solutions": [
+   [
+    [2,4,0],
+    [7,5],
+    [2,6],
+    [3,7],
+    [5,7]
    ]
   ]
  }

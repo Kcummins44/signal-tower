@@ -45,6 +45,9 @@
       tone({ freq: 320, to: 760, type: 'triangle', dur: 0.14, vol: 0.28 });
       tone({ freq: 1520, type: 'sine', start: 0.08, dur: 0.18, vol: 0.08 });
     },
+    lift() { tone({ freq: 420, to: 560, type: 'sine', dur: 0.09, vol: 0.12 }); },
+    turn() { tone({ freq: 1200, type: 'triangle', dur: 0.04, vol: 0.1 }); tone({ freq: 800, type: 'triangle', start: 0.03, dur: 0.04, vol: 0.07 }); },
+    chime() { tone({ freq: 1318, type: 'sine', dur: 0.2, vol: 0.1 }); },
     remove() { tone({ freq: 620, to: 240, type: 'triangle', dur: 0.14, vol: 0.22 }); },
     connect(count = 1) {
       for (let i = 0; i < Math.min(count, 4); i++)

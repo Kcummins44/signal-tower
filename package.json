@@ -5,6 +5,7 @@
   "scripts": {
     "levels": "node tools/solve.js",
     "check": "node tools/solve.js --check",
+    "test": "node tests/logic.test.js",
     "serve": "python3 -m http.server 8765 --bind 127.0.0.1",
     "test:browser": "node tests/browser.js test-results"
   },

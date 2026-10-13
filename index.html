@@ -27,6 +27,11 @@
       <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
       <symbol id="i-tower" viewBox="0 0 24 24"><path d="M7 21L11 7M17 21L13 7M8.6 15.5h6.8M10 11h4M12 7V4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="3.5" r="2"/></symbol>
       <symbol id="i-house" viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 10.5V20h12v-9.5L12 5.5z"/></symbol>
+      <symbol id="i-quiet" viewBox="0 0 24 24"><path d="M6 15a6 6 0 0 1 12 0z"/><rect x="5" y="15" width="14" height="5" rx="1.2"/><path d="M3 12.5a9 9 0 0 1 18 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2.6 2.4"/></symbol>
+      <symbol id="i-busy" viewBox="0 0 24 24"><rect x="6" y="7" width="12" height="14" rx="1.5"/><circle cx="9.5" cy="3.8" r="1.8"/><circle cx="14.5" cy="3.8" r="1.8"/></symbol>
+      <symbol id="i-dish" viewBox="0 0 24 24"><path d="M4 11a8 4 0 0 0 16 0z"/><path d="M12 11V4M12 15v6M8 21h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="3.5" r="1.8"/></symbol>
+      <symbol id="i-relay" viewBox="0 0 24 24"><path d="M3 21l2.5-11M8 21L5.5 10M16 21l2.5-11M21 21l-2.5-11M5.5 7.5h13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="5.5" cy="7" r="2"/><circle cx="18.5" cy="7" r="2"/></symbol>
+      <symbol id="i-panel" viewBox="0 0 24 24"><path d="M5 19L19 5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M4 9h6.5v-.1M10.5 9l-3-3M10.5 9l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(5 6)"/></symbol>
     </defs>
   </svg>
 
@@ -44,10 +49,6 @@
         <div class="meter"><div id="houses-meter"></div></div>
       </div>
       <div class="stat">
-        <span class="stat-label">Towers</span>
-        <div id="towers-left" class="tower-pips" aria-live="polite"></div>
-      </div>
-      <div class="stat">
         <span class="stat-label">Moves</span>
         <b id="moves">0</b>
       </div>
@@ -59,10 +60,19 @@
     </main>
 
     <footer id="hud-bottom" class="hud">
-      <button class="tool-btn" id="undo-btn"><svg><use href="#i-undo"/></svg><span>Undo</span></button>
-      <button class="tool-btn" id="reset-btn"><svg><use href="#i-reset"/></svg><span>Reset</span></button>
-      <button class="tool-btn" id="hint-btn"><svg><use href="#i-hint"/></svg><span>Hint</span></button>
+      <div id="tray" class="tray" role="toolbar" aria-label="Tower tray">
+        <span class="tray-note" aria-hidden="true">Drop here to remove</span>
+      </div>
+      <div class="tray-divider" aria-hidden="true"></div>
+      <div class="tools">
+        <button class="tool-btn" id="undo-btn"><svg><use href="#i-undo"/></svg><span>Undo</span></button>
+        <button class="tool-btn" id="reset-btn"><svg><use href="#i-reset"/></svg><span>Reset</span></button>
+        <button class="tool-btn" id="hint-btn"><svg><use href="#i-hint"/></svg><span>Hint</span></button>
+      </div>
     </footer>
+
+    <canvas id="drag-layer" aria-hidden="true"></canvas>
+    <div id="callout" class="callout" role="status" hidden><span></span></div>
 
     <!-- Title -->
     <section id="screen-title" class="screen" hidden>
