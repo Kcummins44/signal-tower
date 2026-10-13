@@ -375,6 +375,118 @@ async function playLevel(page, sol, useDrag = true) {
   check(!!(lmid && lmid.target), 'landscape: dragging from the side tray reaches the board');
   await l.screenshot({ path: `${OUT}/drag-landscape.png` });
   await touch(lcdp, 'touchEnd', 0, 0); await l.waitForTimeout(100);
+  // Regression (fix round 1): every tile of every level can be reached by a
+  // touch drag on short landscape screens, and the drop lands where the
+  // ghost shows.
+  const sweep = async (page) => page.evaluate(async () => {
+    const g = window.__signalTest, misses = [];
+    const frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    for (let i = 0; i < LEVELS.length; i++) {
+      g.startLevel(i);
+      await frame(); // let the board resize out of the menu layout
+      const b = g.board, r = document.getElementById('board').getBoundingClientRect();
+      for (let y = 0; y < g.state.grid.height; y++) for (let x = 0; x < g.state.grid.width; x++) {
+        if (!window.SignalLogic.canPlace(g.state.grid, x, y)) continue;
+        const fx = r.left + b.ox + (x + 0.5) * b.tile;
+        let ok = false;
+        for (let fy = r.top + b.oy + y * b.tile; fy <= window.innerHeight && !ok; fy += 1) {
+          const t = g.targetAt(fx, fy, 'touch').tile;
+          ok = !!t && t[0] === x && t[1] === y;
+        }
+        if (!ok) misses.push(`${i + 1}:${x},${y}`);
+      }
+    }
+    return misses;
+  });
+  let miss = await sweep(l);
+  check(miss.length === 0, `landscape 844x390: every placeable tile of every level is reachable by touch drag (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
+  const { page: l2, ctx: l2ctx } = await open(browser, 'landscape-small', { viewport: { width: 667, height: 375 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  miss = await sweep(l2);
+  check(miss.length === 0, `landscape 667x375: every placeable tile of every level is reachable by touch drag (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
+  miss = await sweep(m);
+  check(miss.length === 0, `portrait 390x844: every placeable tile is reachable by touch drag (${miss.length} misses)`);
+  // Real touch drags onto every bottom-row tile of level 37 at 667x375.
+  const l2cdp = await l2ctx.newCDPSession(l2);
+  await l2.evaluate(() => window.__signalTest.startLevel(36));
+  await l2.waitForTimeout(200);
+  const bottom = await l2.evaluate(() => { const g = window.__signalTest.state.grid; const out = []; for (let x = 0; x < g.width; x++) if (window.SignalLogic.canPlace(g, x, g.height - 1)) out.push([x, g.height - 1]); return out; });
+  let placedOk = 0;
+  for (const [x, y] of bottom) {
+    await l2.evaluate(() => window.__signalTest.startLevel(36));
+    await l2.waitForTimeout(80);
+    const p0 = await tile(l2, x, y);
+    // Slide the finger down until the drag targets the tile, then drop.
+    await touch(l2cdp, 'touchStart', (await chip(l2, 'mast')).x, (await chip(l2, 'mast')).y);
+    let hitTarget = false;
+    for (let fy = p0.y; fy <= 375; fy += 2) {
+      await touch(l2cdp, 'touchMove', p0.x, fy);
+      const dg = await l2.evaluate(() => window.__signalTest.drag);
+      if (dg && dg.target && dg.target[0] === x && dg.target[1] === y) { hitTarget = true; break; }
+    }
+    await touch(l2cdp, 'touchEnd', 0, 0); await l2.waitForTimeout(80);
+    const s2 = await st(l2);
+    if (hitTarget && s2.n === 1 && s2.towers[0][0] === x && s2.towers[0][1] === y) placedOk++;
+  }
+  check(placedOk === bottom.length, `landscape 667x375: real touch drags place on all ${bottom.length} bottom-row tiles of level 37 (${placedOk} ok)`);
+  await l2.screenshot({ path: `${OUT}/landscape-small-bottom-row.png` });
+  // The level 1 callout and the start toast stay clear of the board and HUD stats.
+  await l.evaluate(() => { localStorage.removeItem('signal-tower-v2'); });
+  await l.reload({ waitUntil: 'domcontentloaded' }); await l.waitForFunction(() => window.__signalTest); await l.waitForTimeout(200);
+  await l.evaluate(() => window.__signalTest.startLevel(0));
+  const clearOf = () => l.evaluate(() => {
+    const r = (el) => el.getBoundingClientRect();
+    const b = window.__signalTest.board, c = r(document.getElementById('board'));
+    const boardRect = { left: c.left + b.ox, top: c.top + b.oy, right: c.left + b.ox + b.boardW, bottom: c.top + b.oy + b.boardH };
+    const hit = (a, z) => a.left < z.right && a.right > z.left && a.top < z.bottom && a.bottom > z.top;
+    const toast = r(document.getElementById('toast')), call = r(document.getElementById('callout'));
+    const stats = [...document.querySelectorAll('#hud-stats .stat')].map(r);
+    return { toastBoard: hit(toast, boardRect), toastStats: stats.some((s) => hit(toast, s)), callBoard: hit(call, boardRect),
+      callStats: stats.some((s) => hit(call, s)), callShown: !document.getElementById('callout').hidden };
+  });
+  await l.waitForTimeout(800);
+  let clear = await clearOf();
+  check(!clear.toastBoard && !clear.toastStats && !clear.callShown, `landscape: the start toast sits clear of the board and the stats (${JSON.stringify(clear)})`);
+  await l.screenshot({ path: `${OUT}/landscape-level1-start.png` });
+  await l.waitForTimeout(4200);
+  clear = await clearOf();
+  check(clear.callShown && !clear.callStats && !clear.callBoard, `landscape: the level 1 tray callout follows the toast, clear of the stats and the board (${JSON.stringify(clear)})`);
+  await l.screenshot({ path: `${OUT}/landscape-level1-callout.png` });
+  await l.evaluate(() => window.__signalTest.startLevel(36));
+  await l.waitForTimeout(500);
+  await l.screenshot({ path: `${OUT}/landscape-toast.png` });
+
+  // Regression: a resize mid-drag retargets the drop to the tile under the pointer.
+  {
+    const { page: r } = await open(browser, 'resize', { viewport: { width: 1280, height: 800 } });
+    await r.evaluate(() => window.__signalTest.startLevel(1));
+    await r.waitForTimeout(200);
+    const t12 = await tile(r, 1, 2);
+    await mouseDrag(r, await chip(r, 'mast'), t12, { drop: false });
+    await r.setViewportSize({ width: 700, height: 800 });
+    await r.waitForTimeout(300);
+    const under = await r.evaluate(([x, y]) => window.__signalTest.board.tileAtPoint(x, y, true), [t12.x, t12.y]);
+    const dg = await r.evaluate(() => window.__signalTest.drag);
+    await r.mouse.up(); await r.waitForTimeout(100);
+    const s3 = await st(r);
+    const expect = under;
+    check(dg && String(dg.target) === String(expect) && (expect ? s3.n === 1 && String(s3.towers[0]) === String(expect) : s3.n === 0),
+      `resize mid-drag: the drop lands on the tile now under the pointer (${expect}), placed ${s3.towers.map(String)}`);
+  }
+
+  // Regression: damaged saves fall back safely.
+  for (const bad of ['{"stars":null}', '{"stars":[1,2],"best":"x","seen":5}', '[]', 'not json', '{"stars":{"0":"3","1":99,"2":2}}']) {
+    const { page: c } = await open(browser, 'badsave', { viewport: { width: 800, height: 600 } });
+    await c.evaluate((bad) => localStorage.setItem('signal-tower-v2', bad), bad);
+    const before = errors.length;
+    await c.reload({ waitUntil: 'domcontentloaded' });
+    const ok = await c.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5, null, { timeout: 5000 }).then(() => true).catch(() => false);
+    await c.click('#title-levels').catch(() => {});
+    const total = ok ? await c.textContent('#star-total') : 'none';
+    const expectStars = bad.includes('"2":2') ? 2 : 0;
+    check(ok && errors.length === before && total === `${expectStars} / ${N * 3}`, `damaged save ${bad} loads safely (stars ${total})`);
+    await c.context().close();
+  }
+
   // Layout: tray and tools never overlap the board area.
   for (const [page, label] of [[d, 'desktop'], [m, 'phone'], [l, 'landscape']]) {
     const ov = await page.evaluate(() => {

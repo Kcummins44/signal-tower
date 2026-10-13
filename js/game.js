@@ -36,9 +36,25 @@
   const progress = load();
   function load() {
     const fallback = { stars: {}, best: {}, sound: true, seen: {} };
+    // Keep only well-formed fields, so a damaged save can never break the game.
+    const numbers = (o, ok) => {
+      const out = {};
+      if (o && typeof o === 'object' && !Array.isArray(o)) {
+        for (const [k, v] of Object.entries(o)) if (/^\d+$/.test(k) && typeof v === 'number' && ok(v)) out[k] = v;
+      }
+      return out;
+    };
     try {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return data && typeof data === 'object' ? { ...fallback, ...data, seen: { ...(data.seen || {}) } } : fallback;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return fallback;
+      const seen = {};
+      if (data.seen && typeof data.seen === 'object') for (const k of Object.keys(data.seen)) if (data.seen[k] === true) seen[k] = true;
+      return {
+        stars: numbers(data.stars, (v) => v >= 1 && v <= 3 && Number.isInteger(v)),
+        best: numbers(data.best, (v) => v >= 0 && Number.isFinite(v)),
+        sound: data.sound !== false,
+        seen,
+      };
     } catch { return fallback; }
   }
   function save() {
@@ -101,7 +117,10 @@
     if (level.callout && !progress.seen['callout-' + index]) {
       progress.seen['callout-' + index] = true;
       save();
-      setTimeout(() => { if (state && state.index === index && !screen && !state.history.length && !drag) showCallout(level.callout.text, level.callout.at); }, 350);
+      // In phone landscape a chip callout shares the side slot with the
+      // start toast, so it waits for the toast to finish.
+      const wait = landscape() && level.callout.at.startsWith('chip') ? 4400 : 350;
+      setTimeout(() => { if (state && state.index === index && !screen && !state.history.length && !drag) showCallout(level.callout.text, level.callout.at); }, wait);
     }
   }
 
@@ -375,9 +394,26 @@
   }
 
   // ---------- Toast and callout ----------
+  // Phone landscape: the board fills the height, so toasts go in the side
+  // column, between the top bar and the stats, clear of the board.
+  const landscape = () => window.matchMedia('(max-height: 560px) and (orientation: landscape)').matches;
+  function placeToast() {
+    const el = $('toast');
+    const side = landscape();
+    el.classList.toggle('side', side);
+    if (!side) { el.style.left = el.style.top = el.style.width = ''; return; }
+    const col = $('hud-bottom').getBoundingClientRect();
+    const top = $('hud-top').getBoundingClientRect();
+    const stage = $('stage').getBoundingClientRect();
+    el.style.left = `${col.left - stage.left + 8}px`;
+    el.style.width = `${col.width - 16}px`;
+    el.style.top = `${top.bottom - stage.top + 4}px`;
+  }
+
   let toastTimer = 0;
   function toast(text, ms = 2200, warm = false) {
     const el = $('toast');
+    placeToast();
     el.textContent = text;
     el.classList.toggle('warm', warm);
     el.hidden = false;
@@ -425,12 +461,26 @@
       const chip = chipEl(callout.target.chip);
       if (!chip) return closeCallout();
       const r = chip.getBoundingClientRect();
+      if (landscape()) {
+        // Side column: the slot above the stats, clear of the board. The
+        // chip's pulsing ring shows which chip it means.
+        el.classList.remove('below');
+        el.classList.add('side');
+        const col = $('hud-bottom').getBoundingClientRect();
+        const top = $('hud-top').getBoundingClientRect();
+        el.style.left = `${col.left + 8}px`;
+        el.style.width = `${col.width - 16}px`;
+        el.style.top = `${top.bottom + 4}px`;
+        return;
+      }
       cx = r.left + r.width / 2; top = r.top; bottom = r.bottom; below = false;
     } else {
       const [x, y] = callout.target.tile;
       const r = board.tileRect(x, y);
       cx = r.left + r.size / 2; top = r.top; bottom = r.top + r.size; below = y < 2;
     }
+    el.classList.remove('side');
+    el.style.width = '';
     el.classList.toggle('below', below);
     const w = el.offsetWidth, h = el.offsetHeight;
     const left = Math.max(8, Math.min(appRect.width - w - 8, cx - w / 2));
@@ -482,13 +532,23 @@
   }
 
   // Ghost lift for touch and pen: the ghost sits above the finger.
-  const liftFor = (pointerType) => (pointerType === 'mouse' ? 0 : Math.max(56, 1.1 * (board.tile || 40)));
+  // Near the bottom of the screen the lift shrinks (to zero at the very
+  // edge), so the ghost can still reach the bottom row when the board fills
+  // the screen height, as in phone landscape. The ghost's height keeps
+  // rising as the finger rises, so every tile stays reachable.
+  const fullLift = (pointerType) => (pointerType === 'mouse' ? 0 : Math.max(56, 1.1 * (board.tile || 40)));
+  const liftFor = (pointerType, clientY = 0) => {
+    const full = fullLift(pointerType);
+    if (!full) return 0;
+    const room = window.innerHeight - clientY;
+    return room >= full ? full : full * Math.max(0, room) / full;
+  };
 
   function startDrag(source, type, e, from) {
     const facing = source === 'board' ? state.towers[from][2] : 0;
     drag = {
       source, type, facing, from, started: true, id: e.pointerId, pointerType: e.pointerType,
-      cx: e.clientX, cy: e.clientY, gx: e.clientX, gy: e.clientY - liftFor(e.pointerType), scale: 0.8, born: performance.now(),
+      cx: e.clientX, cy: e.clientY, gx: e.clientX, gy: e.clientY - liftFor(e.pointerType, e.clientY), scale: 0.8, born: performance.now(),
       target: null, valid: false, overTray: false,
     };
     if (source === 'board') {
@@ -510,15 +570,22 @@
   }
 
   function ghostCentre() {
-    return [drag.cx, drag.cy - liftFor(drag.pointerType)];
+    return [drag.cx, drag.cy - liftFor(drag.pointerType, drag.cy)];
+  }
+
+  // The drop target for a pointer at (cx, cy): null over the tray or off
+  // the board, else the tile under the (lifted) ghost.
+  function targetAt(cx, cy, pointerType) {
+    const tr = $('tray').getBoundingClientRect();
+    const overTray = cx >= tr.left && cx <= tr.right && cy >= tr.top && cy <= tr.bottom;
+    return { overTray, tile: overTray ? null : board.tileAtPoint(cx, cy - liftFor(pointerType, cy), true) };
   }
 
   function updateDragPreview() {
-    const [gx, gy] = ghostCentre();
-    const tr = $('tray').getBoundingClientRect();
-    drag.overTray = drag.cx >= tr.left && drag.cx <= tr.right && drag.cy >= tr.top && drag.cy <= tr.bottom;
+    const hit = targetAt(drag.cx, drag.cy, drag.pointerType);
+    drag.overTray = hit.overTray;
     $('tray').classList.toggle('drop', drag.overTray || (drag.source === 'board' && !drag.target));
-    const tile = drag.overTray ? null : board.tileAtPoint(gx, gy, true);
+    const tile = hit.tile;
     drag.target = tile;
     const origin = drag.source === 'board' ? state.towers[drag.from] : null;
     const own = origin && tile && tile[0] === origin[0] && tile[1] === origin[1];
@@ -921,6 +988,10 @@
     if (r.width && r.height && (r.width !== board.cssW || r.height !== board.cssH)) board.resize(r.width, r.height);
     sizeDragLayer();
     positionCallout();
+    // A resize or rotation mid-drag moves the board under the pointer.
+    if (drag && drag.started && state) updateDragPreview();
+    else if (carry && state) updateCarryPreview();
+    placeToast();
   }
   function sizeDragLayer() {
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -1022,9 +1093,9 @@
 
   // Test hook for the automated playthrough; harmless for players.
   window.__signalTest = {
-    startLevel, act, undo, hint, selectType, board,
+    startLevel, act, undo, hint, selectType, board, targetAt,
     get state() { return state; },
-    get drag() { return drag && { source: drag.source, type: drag.type, target: drag.target, valid: drag.valid, overTray: drag.overTray }; },
+    get drag() { return drag && { source: drag.source, type: drag.type, target: drag.target, valid: drag.valid, overTray: drag.overTray, ghost: ghostCentre() }; },
     remaining: (type) => remaining(type),
   };
 

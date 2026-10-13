@@ -55,7 +55,7 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 - Tray: drag a tower or dish out onto the board. Drop it on the tray, off the board or on a blocked tile to cancel (no move). Tap a chip to choose which type a tile tap builds.
 - Drag a placed tower to another tile to move it (1 move), or off the board / onto the tray to remove it (1 move). A dish keeps its facing when moved.
 - Mouse: hover a tile to preview a tower's reach before you build. Hover a dish to see its cone and the next facing.
-- Touch: the dragged tower floats above your finger so you can see where it lands. Hold an empty tile to lift a tower there and preview it; release to build. Hold a tower to remove it.
+- Touch: the dragged tower floats above your finger so you can see where it lands. Near the bottom of the screen it floats lower, so the bottom row can always be reached (phone landscape). Hold an empty tile to lift a tower there and preview it; release to build. Hold a tower to remove it.
 - Keyboard: arrow keys move the cursor, Enter builds (or removes a tower, or turns a dish), `1` / `2` pick Tower / Dish, `M` picks up the tower under the cursor (arrows move it, Enter drops, Esc cancels), `Delete` removes, `Z` undoes, `R` resets, `H` shows a hint, `Esc` pauses.
 
 ## Files

@@ -234,13 +234,13 @@ module.exports = [
   {
     name: 'Quiet Please',
     chapter: 'quiet',
-    hint: 'Keep your signal off the observatory. Walls and hills can shield it.',
+    hint: 'Keep your signal off the observatory. The easy spot may be too close.',
     callout: { text: 'Needs quiet. No signal here.', at: 'Q' },
     radius: 2,
     map: [
-      '.H.H.',
-      'H...H',
-      '..#..',
+      '..H..',
+      'H..H.',
+      '.....',
       '..Q..',
       'T...T',
     ],

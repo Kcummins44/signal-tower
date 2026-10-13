@@ -450,7 +450,7 @@ const LEVELS = [
  },
  {
   "name": "Quiet Please",
-  "hint": "Keep your signal off the observatory. Walls and hills can shield it.",
+  "hint": "Keep your signal off the observatory. The easy spot may be too close.",
   "radius": 2,
   "towers": 1,
   "chapter": "quiet",
@@ -463,15 +463,15 @@ const LEVELS = [
    "two": 3
   },
   "map": [
-   ".H.H.",
-   "H...H",
-   "..#..",
+   "..H..",
+   "H..H.",
+   ".....",
    "..Q..",
    "T...T"
   ],
   "solutions": [
    [
-    [2,1]
+    [1,1]
    ]
   ]
  },
