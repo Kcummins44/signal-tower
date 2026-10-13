@@ -1,60 +1,76 @@
 # Signal Tower
 
-A small browser puzzle game. Place a limited number of towers on a grid so that every house gets signal.
+A browser puzzle game: build radio towers so that every house in town gets signal.
 
-Plain HTML, CSS and JavaScript. No build tools or dependencies.
+**Play:** https://kcummins44.github.io/signal-tower/
 
-## Play
-
-Open `index.html` in a browser. No server is needed.
+Plain HTML, CSS and JavaScript with no build step and no runtime dependencies. All art is drawn with canvas and SVG code, and all sound is synthesized with WebAudio.
 
 ## Rules
 
-- Click an empty tile or a hill to place a tower. Click a tower again to remove it.
+- Tap or click a grass tile or a hill to build a tower. Tap a tower to remove it.
 - Each level gives you a fixed number of towers.
-- A tower reaches every tile within its radius (straight-line distance, radius 2 on all current levels).
-- **Walls** block signal. A tile is reached only if the line from the tower to it doesn't pass through a wall.
-- **Hills** add +1 to the range of a tower placed on them.
-- Houses and walls can't hold towers.
-- You win when every house has signal.
+- A tower reaches every tile whose centre lies within its radius (2 tiles on most levels, 3 on levels 13 and 14).
+- **Walls** block signal.
+- **Hills** block signal for towers on the ground. A tower built on a hill gets +1 range and sees over other hills.
+- **Trees** can't hold towers, but signal passes through them.
+- Line of sight runs from the centre of the tower's tile to the centre of each target tile. A line that only grazes a blocker's corner passes. A line squeezing between two blockers that touch diagonally is blocked.
+- You win when every house is connected.
 
-Each place or remove counts as one move. Your best move count per level is saved in the browser's `localStorage`.
+**Stars.** Each place, remove or undo counts as one move. The solver sets the thresholds for each level:
 
-**Controls:** mouse or keyboard (Tab to move between tiles, Enter or Space to place). Press `R` to reset and `Esc` to return to level select.
+| Stars | Requirement |
+|-------|-------------|
+| 3 | Moves ≤ the towers in the smallest solution (a perfect run), with no hints |
+| 2 | Moves ≤ that number + max(2, that number). Using a hint caps the level at 2 stars |
+| 1 | Any solve |
+
+You unlock the next level by finishing the current one. Stars, best move counts and the sound setting are saved in `localStorage`.
+
+**Controls:**
+- Mouse: hover a tile to preview a tower's reach before you build.
+- Touch: hold a tile to preview its reach, release to build.
+- Keyboard: arrow keys move the cursor, Enter builds, `Z` undoes, `R` resets, `H` shows a hint, `Esc` pauses.
 
 ## Files
 
-| File | Purpose |
+| Path | Purpose |
 |------|---------|
-| `index.html` | Page layout: level select, game screen, win overlay |
-| `style.css` | Styles |
-| `logic.js` | Pure game rules (coverage, line of sight, win check). Used by the game and the tests |
-| `levels.js` | Level data |
-| `game.js` | UI: rendering, input, screens, saved progress |
-| `tests/check-levels.js` | Solver that verifies every level |
+| `index.html` | Page, HUD, menus, inline SVG icon set |
+| `css/style.css` | Layout and UI styles (desktop, phone portrait and landscape) |
+| `js/logic.js` | Pure rules: line of sight, coverage, connections and the solver. Shared with Node |
+| `js/art.js` | Canvas drawing for grass, hills, walls, trees, houses and towers |
+| `js/board.js` | Board renderer: cached terrain, coverage and shadow overlay, masked radio waves, link lines |
+| `js/audio.js` | WebAudio sound effects |
+| `js/game.js` | Screens, input (pointer and keyboard), undo, hints, stars, saved progress |
+| `js/levels.js` | **Generated.** Level data with tower budgets, star thresholds and hint solutions |
+| `tools/levels-src.js` | Level source maps. Edit these |
+| `tools/solve.js` | Solver. Proves every level is solvable and writes `js/levels.js` |
+| `tools/generate.js` | Level design helper that searches random maps for tight puzzles |
+| `tests/browser.js` | End-to-end headless browser test |
 
-## Adding a level
+## Editing levels
 
-Add an entry to `LEVELS` in `levels.js`:
+1. Edit `tools/levels-src.js`. Map legend: `.` grass, `H` house, `#` wall, `^` hill, `T` tree.
+2. Run `node tools/solve.js`. It searches every tower placement, prints each level's minimum tower count and number of solutions, and rewrites `js/levels.js`. It exits non-zero if any level is unsolvable.
+3. Run `node tools/solve.js --check` before committing. It fails if `js/levels.js` is stale.
 
-```js
-{
-  name: 'My Level',
-  hint: 'Shown under the title.',
-  towers: 2,      // tower budget
-  radius: 2,      // base signal radius
-  map: [          // . empty   H house   # wall   ^ hill
-    'H...#',
-    '..^.#',
-    '....H',
-  ],
-}
-```
+To find new puzzles, run `node tools/generate.js` with no arguments to see its usage.
 
-Then run the level check:
+## Testing
 
 ```sh
-node tests/check-levels.js
+npm install                 # dev only: installs Playwright
+npx playwright install chromium-headless-shell
+npm run serve &             # local server on port 8765
+npm run check               # solver check
+npm run test:browser        # full playthrough, touch, performance, screenshots in test-results/
 ```
 
-It brute-forces every tower placement and prints the fewest towers each level needs. It exits non-zero if a level is unsolvable or can be solved with fewer towers than its budget.
+The browser test does the following:
+- Plays all 15 levels with mouse clicks and expects 3 stars on each.
+- Plays the last level with touch taps.
+- Checks undo, reset, locked levels, saved progress and the mute setting.
+- Requires 60fps, and fails on any console error or warning.
+
+Note for macOS 27: Playwright builds older than 1.63 ship a Chromium that macOS refuses to run.

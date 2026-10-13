@@ -2,53 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b232d">
+  <meta name="description" content="Signal Tower: a puzzle game about placing radio towers so every house gets signal.">
   <title>Signal Tower</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2326313d'/%3E%3Cpath d='M10 27 L15 9 M22 27 L17 9 M12 21 H20 M13.5 15 H18.5' stroke='%23e8ebef' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='7' r='2.5' fill='%237fe0d0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main id="app">
-    <section id="select-screen" class="screen">
-      <h1>Signal Tower</h1>
-      <p class="tagline">Place towers so every house gets signal. Walls block it, and hills boost range.</p>
-      <div id="level-list" class="level-list"></div>
-      <div class="legend">
-        <span><i class="tile house"></i> House</span>
-        <span><i class="tile wall"></i> Wall</span>
-        <span><i class="tile hill"></i> Hill (+1 range)</span>
-        <span><i class="tile tower"></i> Tower</span>
-      </div>
-    </section>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3M5.4 7.2A8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-hint" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.75 5.6 6.15.9-4.45 4.33 1.05 6.12L12 16.87l-5.5 2.9 1.05-6.13L3.1 9.3l6.15-.9z" stroke-linejoin="round"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+      <symbol id="i-tower" viewBox="0 0 24 24"><path d="M7 21L11 7M17 21L13 7M8.6 15.5h6.8M10 11h4M12 7V4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="3.5" r="2"/></symbol>
+      <symbol id="i-house" viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 10.5V20h12v-9.5L12 5.5z"/></symbol>
+    </defs>
+  </svg>
 
-    <section id="game-screen" class="screen" hidden>
-      <header class="game-header">
-        <button id="back-btn" class="ghost">← Levels</button>
-        <h2 id="level-title"></h2>
-        <button id="reset-btn" class="ghost">Reset</button>
-      </header>
-      <p id="level-hint" class="hint"></p>
-      <div class="stats">
-        <div><span class="label">Towers left</span><span id="towers-left" class="value"></span></div>
-        <div><span class="label">Moves</span><span id="moves" class="value"></span></div>
-        <div><span class="label">Houses lit</span><span id="houses-lit" class="value"></span></div>
-      </div>
-      <div id="board" class="board" role="grid"></div>
-    </section>
+  <div id="app" class="mode-menu">
+    <header id="hud-top" class="hud">
+      <button class="icon-btn" id="pause-btn" aria-label="Pause"><svg><use href="#i-pause"/></svg></button>
+      <div class="level-name"><span id="level-num"></span><strong id="level-title"></strong></div>
+      <button class="icon-btn" id="mute-btn" aria-label="Mute sound"><svg><use href="#i-sound"/></svg></button>
+    </header>
 
-    <div id="win-screen" class="overlay" hidden>
-      <div class="win-card" role="dialog" aria-labelledby="win-title">
-        <h2 id="win-title">All houses connected!</h2>
-        <p id="win-stats"></p>
-        <div class="win-actions">
-          <button id="win-levels" class="ghost">Level select</button>
-          <button id="win-replay" class="ghost">Replay</button>
-          <button id="win-next">Next level →</button>
-        </div>
+    <div id="hud-stats" class="hud">
+      <div class="stat stat-houses" aria-live="polite">
+        <svg class="stat-icon"><use href="#i-house"/></svg>
+        <span><b id="houses-lit">0</b><span class="of">/<span id="houses-total">0</span></span></span>
+        <div class="meter"><div id="houses-meter"></div></div>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Towers</span>
+        <div id="towers-left" class="tower-pips" aria-live="polite"></div>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Moves</span>
+        <b id="moves">0</b>
       </div>
     </div>
-  </main>
-  <script src="logic.js"></script>
-  <script src="levels.js"></script>
-  <script src="game.js"></script>
+
+    <main id="stage">
+      <canvas id="board" aria-label="Game board"></canvas>
+      <div id="toast" class="toast" role="status" hidden></div>
+    </main>
+
+    <footer id="hud-bottom" class="hud">
+      <button class="tool-btn" id="undo-btn"><svg><use href="#i-undo"/></svg><span>Undo</span></button>
+      <button class="tool-btn" id="reset-btn"><svg><use href="#i-reset"/></svg><span>Reset</span></button>
+      <button class="tool-btn" id="hint-btn"><svg><use href="#i-hint"/></svg><span>Hint</span></button>
+    </footer>
+
+    <!-- Title -->
+    <section id="screen-title" class="screen" hidden>
+      <div class="panel title-panel">
+        <svg class="logo" viewBox="0 0 120 120" aria-hidden="true">
+          <g class="logo-waves" fill="none" stroke="#7fe0d0" stroke-width="3">
+            <circle cx="60" cy="34" r="14"/><circle cx="60" cy="34" r="14"/><circle cx="60" cy="34" r="14"/>
+          </g>
+          <ellipse cx="62" cy="104" rx="26" ry="6" fill="rgba(0,0,0,0.25)"/>
+          <rect x="38" y="92" width="44" height="12" rx="5" fill="#a9b0ba"/>
+          <rect x="38" y="90" width="44" height="9" rx="4.5" fill="#d5d9df"/>
+          <path d="M46 92 L57 36 M74 92 L63 36" stroke="#e8ebef" stroke-width="4" stroke-linecap="round"/>
+          <path d="M48 80 L69 66 M72 80 L51 66 M51 64 L66 52 M69 64 L54 52" stroke="#8d95a1" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M60 36 V24" stroke="#e8ebef" stroke-width="3" stroke-linecap="round"/>
+          <circle class="logo-light" cx="60" cy="22" r="5" fill="#7fe0d0"/>
+        </svg>
+        <h1>Signal Tower</h1>
+        <p class="tagline">Place radio towers so every house gets signal.</p>
+        <div class="menu">
+          <button class="btn primary" id="title-play"><svg><use href="#i-play"/></svg><span id="title-play-label">Play</span></button>
+          <button class="btn" id="title-levels"><svg><use href="#i-grid"/></svg>Levels</button>
+          <button class="btn" id="title-settings"><svg><use href="#i-gear"/></svg>Settings</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level select -->
+    <section id="screen-levels" class="screen" hidden>
+      <div class="panel levels-panel">
+        <div class="panel-head">
+          <button class="icon-btn" id="levels-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
+          <h2>Levels</h2>
+          <div class="star-total"><svg><use href="#i-star"/></svg><span id="star-total">0</span></div>
+        </div>
+        <div id="level-grid" class="level-grid"></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="screen-settings" class="screen" hidden>
+      <div class="panel small-panel">
+        <div class="panel-head">
+          <button class="icon-btn" id="settings-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
+          <h2>Settings</h2>
+          <span></span>
+        </div>
+        <label class="setting">
+          <span>Sound effects</span>
+          <input type="checkbox" id="sound-toggle" class="switch">
+        </label>
+        <div class="setting">
+          <span>Progress</span>
+          <button class="btn small danger" id="reset-progress">Reset progress</button>
+        </div>
+        <p class="fine">Progress is saved in this browser.</p>
+      </div>
+    </section>
+
+    <!-- Pause -->
+    <section id="screen-pause" class="screen" hidden>
+      <div class="panel small-panel">
+        <h2>Paused</h2>
+        <div class="menu">
+          <button class="btn primary" id="pause-resume"><svg><use href="#i-play"/></svg>Resume</button>
+          <button class="btn" id="pause-restart"><svg><use href="#i-reset"/></svg>Restart level</button>
+          <button class="btn" id="pause-levels"><svg><use href="#i-grid"/></svg>Level select</button>
+          <label class="setting inline">
+            <span>Sound</span>
+            <input type="checkbox" id="pause-sound" class="switch">
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Win -->
+    <section id="screen-win" class="screen" hidden>
+      <div class="panel small-panel win-panel">
+        <p class="eyebrow" id="win-eyebrow">Level complete</p>
+        <h2 id="win-title">All houses connected</h2>
+        <div class="win-stars" id="win-stars">
+          <svg class="star"><use href="#i-star"/></svg>
+          <svg class="star big"><use href="#i-star"/></svg>
+          <svg class="star"><use href="#i-star"/></svg>
+        </div>
+        <p id="win-detail" class="win-detail"></p>
+        <div class="menu row">
+          <button class="btn" id="win-levels" aria-label="Level select"><svg><use href="#i-grid"/></svg></button>
+          <button class="btn" id="win-replay" aria-label="Replay"><svg><use href="#i-reset"/></svg></button>
+          <button class="btn primary grow" id="win-next">Next level<svg><use href="#i-next"/></svg></button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/logic.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
