@@ -1,0 +1,816 @@
+{
+  "version": 1,
+  "speakers": {
+    "narrator": {
+      "name": "",
+      "role": "",
+      "color": "#e9edf1",
+      "portrait": null
+    },
+    "sam": {
+      "name": "Sam",
+      "role": "Apprentice",
+      "color": "#7fe0d0",
+      "portrait": "sam"
+    },
+    "nell": {
+      "name": "Nell",
+      "role": "Signal keeper",
+      "color": "#ffd27a",
+      "portrait": "nell"
+    },
+    "juniper": {
+      "name": "Juniper",
+      "role": "Astronomer",
+      "color": "#cbbff5",
+      "portrait": "juniper"
+    },
+    "otto": {
+      "name": "Otto",
+      "role": "Mayor",
+      "color": "#f0a986",
+      "portrait": "otto"
+    }
+  },
+  "scenes": [
+    {
+      "id": "prologue",
+      "title": "The Night the Tower Fell",
+      "chapter": "basics",
+      "trigger": {
+        "type": "prologue"
+      },
+      "backdrop": "town",
+      "lines": [
+        {
+          "id": "prologue.1",
+          "speaker": "narrator",
+          "text": "Wren Hollow, the night after the big storm."
+        },
+        {
+          "id": "prologue.2",
+          "speaker": "nell",
+          "text": "Well, that's that. The old tower came down in the wind, and every radio went quiet.",
+          "mood": "worried"
+        },
+        {
+          "id": "prologue.3",
+          "speaker": "nell",
+          "text": "No weather, no news, no Radio Wren. Forty years on air, and not a peep tonight.",
+          "mood": "worried"
+        },
+        {
+          "id": "prologue.4",
+          "speaker": "sam",
+          "text": "So we build it back up?"
+        },
+        {
+          "id": "prologue.5",
+          "speaker": "nell",
+          "text": "The big one takes time. We start small. Little towers, house by house."
+        },
+        {
+          "id": "prologue.6",
+          "speaker": "nell",
+          "text": "By Starfall Night, every home in the Hollow hears us again. Deal, apprentice?",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "basics.start",
+      "title": "Main Street",
+      "chapter": "basics",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "basics"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "basics.start.1",
+          "speaker": "nell",
+          "text": "Here's Main Street. See the dark windows? Those folks can't hear a thing.",
+          "focus": "H"
+        },
+        {
+          "id": "basics.start.2",
+          "speaker": "nell",
+          "text": "Set a tower on the grass. Its signal reaches about two tiles all round."
+        },
+        {
+          "id": "basics.start.3",
+          "speaker": "sam",
+          "text": "And every house in reach lights up?"
+        },
+        {
+          "id": "basics.start.4",
+          "speaker": "nell",
+          "text": "Every one. Light them all and the street is back on air.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "basics.mayor",
+      "title": "The Mayor Drops By",
+      "chapter": "basics",
+      "trigger": {
+        "type": "levelStart",
+        "level": 9
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "basics.mayor.1",
+          "speaker": "otto",
+          "text": "Was that Radio Wren on my kitchen set? Splendid. Simply splendid!",
+          "mood": "happy"
+        },
+        {
+          "id": "basics.mayor.2",
+          "speaker": "otto",
+          "text": "Nell, the council is fretting. They say the Hollow can't wait forever for news.",
+          "mood": "worried"
+        },
+        {
+          "id": "basics.mayor.3",
+          "speaker": "nell",
+          "text": "Tell the council they'll have it. My apprentice is quick."
+        },
+        {
+          "id": "basics.mayor.4",
+          "speaker": "otto",
+          "text": "Then Starfall Night stays on the calendar. All of it on air. No pressure!",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "basics.end",
+      "title": "The Tower Stands",
+      "chapter": "basics",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "basics"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "basics.end.1",
+          "speaker": "nell",
+          "text": "Look at that. The old tower, standing again, and Main Street all lit up.",
+          "mood": "happy"
+        },
+        {
+          "id": "basics.end.2",
+          "speaker": "sam",
+          "text": "Every window. Even the bakery.",
+          "mood": "happy"
+        },
+        {
+          "id": "basics.end.3",
+          "speaker": "nell",
+          "text": "Mrs. Tull's been baking by candlelight all week. Expect scones.",
+          "mood": "happy"
+        },
+        {
+          "id": "basics.end.4",
+          "speaker": "nell",
+          "text": "Now, someone up the hill has been waiting for us. Quietly."
+        }
+      ]
+    },
+    {
+      "id": "quiet.start",
+      "title": "Quiet, Please",
+      "chapter": "quiet",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "quiet"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "quiet.start.1",
+          "speaker": "juniper",
+          "text": "Oh! Hello. Sorry, I whisper. Habit. I'm Juniper. I run the observatory.",
+          "mood": "happy",
+          "focus": "Q"
+        },
+        {
+          "id": "quiet.start.2",
+          "speaker": "juniper",
+          "text": "My telescopes listen to the sky. Your radio is lovely, but it is very loud to them.",
+          "mood": "worried",
+          "focus": "Q"
+        },
+        {
+          "id": "quiet.start.3",
+          "speaker": "nell",
+          "text": "So the observatory stays out of every tower's reach. Not one can touch it."
+        },
+        {
+          "id": "quiet.start.4",
+          "speaker": "juniper",
+          "text": "Walls and hills make good shade. Starfall is coming, and I can't miss it."
+        }
+      ]
+    },
+    {
+      "id": "quiet.end",
+      "title": "Listening to Stars",
+      "chapter": "quiet",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "quiet"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "quiet.end.1",
+          "speaker": "juniper",
+          "text": "Listen. Nothing at all. Just stars. It's perfect.",
+          "mood": "happy"
+        },
+        {
+          "id": "quiet.end.2",
+          "speaker": "juniper",
+          "text": "The Wrenfall comes every autumn. Hundreds of meteors, right over the Hollow."
+        },
+        {
+          "id": "quiet.end.3",
+          "speaker": "sam",
+          "text": "And on Starfall Night, everyone watches?"
+        },
+        {
+          "id": "quiet.end.4",
+          "speaker": "juniper",
+          "text": "Everyone listens. Radio Wren calls out every one. Well, it used to."
+        },
+        {
+          "id": "quiet.end.5",
+          "speaker": "nell",
+          "text": "It will again.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "busy.start",
+      "title": "Rush Hour",
+      "chapter": "busy",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "busy"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "busy.start.1",
+          "speaker": "otto",
+          "text": "Welcome downtown! Phones ringing, kettles boiling, everyone talking at once!",
+          "mood": "happy",
+          "focus": "B"
+        },
+        {
+          "id": "busy.start.2",
+          "speaker": "otto",
+          "text": "But if one signal flickers, the whole office drops the call. Chaos!",
+          "mood": "worried"
+        },
+        {
+          "id": "busy.start.3",
+          "speaker": "nell",
+          "text": "Then each office block gets two different towers. If one blinks, the other holds.",
+          "focus": "B"
+        },
+        {
+          "id": "busy.start.4",
+          "speaker": "otto",
+          "text": "Two lamps on the roof for two signals. I like it. Very official.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "busy.end",
+      "title": "Not One Dropped Call",
+      "chapter": "busy",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "busy"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "busy.end.1",
+          "speaker": "otto",
+          "text": "Not a single dropped call all morning. The council is speechless!",
+          "mood": "happy"
+        },
+        {
+          "id": "busy.end.2",
+          "speaker": "otto",
+          "text": "Well, they're talking a great deal, actually. But happily."
+        },
+        {
+          "id": "busy.end.3",
+          "speaker": "nell",
+          "text": "Good. Because the orchard farms past the ridge still hear nothing.",
+          "mood": "worried"
+        },
+        {
+          "id": "busy.end.4",
+          "speaker": "otto",
+          "text": "The orchards? That's a long way out. You'll need something with real reach.",
+          "mood": "worried"
+        }
+      ]
+    },
+    {
+      "id": "dish.start",
+      "title": "The Old Dish",
+      "chapter": "dish",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "dish"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "dish.start.1",
+          "speaker": "nell",
+          "text": "Found her in the shed. My old dish. She reaches far, but only one way.",
+          "mood": "happy",
+          "focus": "chip:dish"
+        },
+        {
+          "id": "dish.start.2",
+          "speaker": "sam",
+          "text": "Only one way?"
+        },
+        {
+          "id": "dish.start.3",
+          "speaker": "nell",
+          "text": "A quarter turn of sky, straight out. Tap her to turn her. Turning costs nothing."
+        },
+        {
+          "id": "dish.start.4",
+          "speaker": "nell",
+          "text": "Out here the little towers won't carry far. Let the dish do the long work."
+        }
+      ]
+    },
+    {
+      "id": "dish.end",
+      "title": "The Orchards Answer",
+      "chapter": "dish",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "dish"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "dish.end.1",
+          "speaker": "sam",
+          "text": "The orchard farms are on! I can hear them cheering from here.",
+          "mood": "happy"
+        },
+        {
+          "id": "dish.end.2",
+          "speaker": "nell",
+          "text": "That's the Pell family. Loud lot. Bless them.",
+          "mood": "happy"
+        },
+        {
+          "id": "dish.end.3",
+          "speaker": "nell",
+          "text": "Now for the real test. I'm switching the old station back on."
+        },
+        {
+          "id": "dish.end.4",
+          "speaker": "nell",
+          "text": "From here on, towers carry the real broadcast. Hand to hand."
+        }
+      ]
+    },
+    {
+      "id": "relay.start",
+      "title": "Back on the Air",
+      "chapter": "relay",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "relay"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "relay.start.1",
+          "speaker": "nell",
+          "text": "Radio Wren station, back on the air. Forty years, and she still hums.",
+          "mood": "happy",
+          "focus": "S"
+        },
+        {
+          "id": "relay.start.2",
+          "speaker": "nell",
+          "text": "The station is a tower too. But the others must hear it to pass it on.",
+          "focus": "S"
+        },
+        {
+          "id": "relay.start.3",
+          "speaker": "sam",
+          "text": "So every tower has to link back to the station, through other live towers?"
+        },
+        {
+          "id": "relay.start.4",
+          "speaker": "nell",
+          "text": "Right. A tower with no link is just a pole in a field. No voice at all."
+        }
+      ]
+    },
+    {
+      "id": "relay.dad",
+      "title": "Nell's First Tower",
+      "chapter": "relay",
+      "trigger": {
+        "type": "levelStart",
+        "level": 30
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "relay.dad.1",
+          "speaker": "nell",
+          "text": "I built the first tower on that hill with my dad. I was younger than you."
+        },
+        {
+          "id": "relay.dad.2",
+          "speaker": "sam",
+          "text": "Did he teach you all this?"
+        },
+        {
+          "id": "relay.dad.3",
+          "speaker": "nell",
+          "text": "Most of it. Storms taught me the rest. Good teachers. Rude, though.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "relay.end",
+      "title": "Mirrors, Juniper?",
+      "chapter": "relay",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "relay"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "relay.end.1",
+          "speaker": "nell",
+          "text": "Hear that? That's the real Radio Wren, in every corner of town.",
+          "mood": "happy"
+        },
+        {
+          "id": "relay.end.2",
+          "speaker": "juniper",
+          "text": "Nell! The Glass Lanes are still dark. The streets bend too much for signal.",
+          "mood": "worried"
+        },
+        {
+          "id": "relay.end.3",
+          "speaker": "juniper",
+          "text": "But I have spare telescope mirrors. Big ones. They bounce anything."
+        },
+        {
+          "id": "relay.end.4",
+          "speaker": "nell",
+          "text": "Mirrors. Juniper, you're a genius.",
+          "mood": "happy"
+        },
+        {
+          "id": "relay.end.5",
+          "speaker": "juniper",
+          "text": "I know. I mean, thank you.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "panel.start",
+      "title": "The Glass Lanes",
+      "chapter": "panel",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "panel"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "panel.start.1",
+          "speaker": "juniper",
+          "text": "Here they are. Polished panels from the old telescope. Mind the shine.",
+          "mood": "happy",
+          "focus": "/L"
+        },
+        {
+          "id": "panel.start.2",
+          "speaker": "juniper",
+          "text": "A panel blocks signal head-on, but bounces it once, around the corner.",
+          "focus": "/L"
+        },
+        {
+          "id": "panel.start.3",
+          "speaker": "nell",
+          "text": "The bounce counts the whole trip, there and on. So stand close to the panel."
+        },
+        {
+          "id": "panel.start.4",
+          "speaker": "sam",
+          "text": "One bounce, round the corner. Got it.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "panel.end",
+      "title": "The Night Before",
+      "chapter": "panel",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "panel"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "panel.end.1",
+          "speaker": "sam",
+          "text": "That's the last dark street. The Glass Lanes are glowing.",
+          "mood": "happy"
+        },
+        {
+          "id": "panel.end.2",
+          "speaker": "juniper",
+          "text": "The panels catch the starlight too. Look. The whole lane sparkles.",
+          "mood": "happy"
+        },
+        {
+          "id": "panel.end.3",
+          "speaker": "otto",
+          "text": "Nell! Apprentice! Starfall Night is tomorrow. Is the Hollow ready?",
+          "mood": "worried"
+        },
+        {
+          "id": "panel.end.4",
+          "speaker": "nell",
+          "text": "Almost. One last broadcast. Everything at once."
+        }
+      ]
+    },
+    {
+      "id": "mixed.start",
+      "title": "Starfall Night",
+      "chapter": "mixed",
+      "trigger": {
+        "type": "chapterStart",
+        "chapter": "mixed"
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "mixed.start.1",
+          "speaker": "otto",
+          "text": "Bunting up, lanterns lit, cocoa on. The whole Hollow is out in the square!",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.start.2",
+          "speaker": "juniper",
+          "text": "And the observatory still needs quiet skies. The meteors start at nine.",
+          "mood": "worried",
+          "focus": "Q"
+        },
+        {
+          "id": "mixed.start.3",
+          "speaker": "nell",
+          "text": "Offices want two signals. The observatory wants none. Mind them both."
+        },
+        {
+          "id": "mixed.start.4",
+          "speaker": "nell",
+          "text": "Everything you've learned, apprentice. One night. Let's go.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "mixed.meteor",
+      "title": "First Meteor",
+      "chapter": "mixed",
+      "trigger": {
+        "type": "levelStart",
+        "level": 37
+      },
+      "backdrop": "board",
+      "lines": [
+        {
+          "id": "mixed.meteor.1",
+          "speaker": "juniper",
+          "text": "First meteor! Did you see it? Right over the ridge!",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.meteor.2",
+          "speaker": "otto",
+          "text": "I heard it! On the radio! That's how it's done!",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.meteor.3",
+          "speaker": "nell",
+          "text": "Two more streets, apprentice. Then the whole Hollow hears the show."
+        }
+      ]
+    },
+    {
+      "id": "mixed.end",
+      "title": "Live from the Hill",
+      "chapter": "mixed",
+      "trigger": {
+        "type": "chapterEnd",
+        "chapter": "mixed"
+      },
+      "backdrop": "map",
+      "lines": [
+        {
+          "id": "mixed.end.1",
+          "speaker": "nell",
+          "text": "This is Radio Wren, live from the hill. Starfall Night has begun.",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.end.2",
+          "speaker": "juniper",
+          "text": "Meteor at the ridge. Two by the orchard. Oh, there's a bright one!",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.end.3",
+          "speaker": "otto",
+          "text": "Every house is listening. Every single one. The council is in tears!",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.end.4",
+          "speaker": "sam",
+          "text": "We did it, Nell.",
+          "mood": "happy"
+        },
+        {
+          "id": "mixed.end.5",
+          "speaker": "nell",
+          "text": "You did it. I just held the ladder.",
+          "mood": "happy"
+        }
+      ]
+    },
+    {
+      "id": "epilogue",
+      "title": "Keeper",
+      "chapter": "mixed",
+      "trigger": {
+        "type": "epilogue"
+      },
+      "backdrop": "town",
+      "lines": [
+        {
+          "id": "epilogue.1",
+          "speaker": "narrator",
+          "text": "Starfall Night, Wren Hollow. Every window warm. Every radio on."
+        },
+        {
+          "id": "epilogue.2",
+          "speaker": "otto",
+          "text": "The council voted this morning. Radio Wren stays on air. Forever, I told them.",
+          "mood": "happy"
+        },
+        {
+          "id": "epilogue.3",
+          "speaker": "juniper",
+          "text": "Three hundred and twelve meteors. My best count ever, and not one buzz.",
+          "mood": "happy"
+        },
+        {
+          "id": "epilogue.4",
+          "speaker": "nell",
+          "text": "I've been thinking. The Hollow needs a signal keeper. A proper one."
+        },
+        {
+          "id": "epilogue.5",
+          "speaker": "nell",
+          "text": "The tower's yours, keeper. Keep it humming.",
+          "mood": "happy"
+        },
+        {
+          "id": "epilogue.6",
+          "speaker": "narrator",
+          "text": "Thank you for playing Signal Tower."
+        }
+      ]
+    }
+  ],
+  "levelLines": {
+    "1": "The first window glows. Someone waves a tea towel.",
+    "2": "The garden wall kept the signal out. Not anymore.",
+    "3": "The house behind the hill hears the weather again.",
+    "4": "From the hilltop, the signal rolls all the way down.",
+    "5": "The cottages in the woods are humming along.",
+    "6": "The quarry workers' radio crackles back to life.",
+    "7": "The crossing guard hears the school report.",
+    "8": "Both sides of the long fence are on air.",
+    "9": "One valley, two halves, one station.",
+    "10": "Nine farmhouses on the back roads, all tuned in.",
+    "11": "The ridge cottages hear the evening songs.",
+    "12": "Every pocket of the maze is listening.",
+    "13": "Bigger towers, bigger reach. Main Street is buzzing.",
+    "14": "Even the old walled lane has news tonight.",
+    "15": "The old tower stands again. The Hollow cheers.",
+    "16": "The observatory hears only stars.",
+    "17": "Houses lit, telescope undisturbed. Juniper sighs.",
+    "18": "Two domes, two quiet skies.",
+    "19": "The hill keeps the deep field dark and still.",
+    "20": "Two lamps on the roof. The phones never drop.",
+    "21": "The day shift and the night shift both get through.",
+    "22": "The office works late, and so does the signal.",
+    "23": "Downtown hums. Otto says \"splendid\" six times.",
+    "24": "The dish finds the first orchard farm.",
+    "25": "One narrow beam, one very happy farmer.",
+    "26": "Signal flies down the long lane to the barns.",
+    "27": "Two dishes, aimed true. The orchards are on air.",
+    "28": "Station to tower, tower to home. The chain holds.",
+    "29": "A quiet tower in the middle carries the voice.",
+    "30": "Hill to hill, the broadcast steps across town.",
+    "31": "From the corner station to the far side of town.",
+    "32": "The signal turns its first corner.",
+    "33": "A lane that never had signal hears music.",
+    "34": "Two sealed gardens, both reached by a bounce.",
+    "35": "The Glass Lanes sparkle and sing.",
+    "36": "Busy offices, quiet dome, side by side.",
+    "37": "The chain bends round the corner to the square.",
+    "38": "Every house in Wren Hollow. Starfall is on air."
+  },
+  "town": [
+    {
+      "chapter": "basics",
+      "layer": "tl-basics",
+      "caption": "Main Street is lit again.",
+      "chapterName": "Main Street"
+    },
+    {
+      "chapter": "quiet",
+      "layer": "tl-quiet",
+      "caption": "The observatory dome is open.",
+      "chapterName": "Quiet Hours"
+    },
+    {
+      "chapter": "busy",
+      "layer": "tl-busy",
+      "caption": "Downtown has two lamps on every roof.",
+      "chapterName": "Rush Hour"
+    },
+    {
+      "chapter": "dish",
+      "layer": "tl-dish",
+      "caption": "The orchard farms are on air.",
+      "chapterName": "Point the Dish"
+    },
+    {
+      "chapter": "relay",
+      "layer": "tl-relay",
+      "caption": "Radio Wren station is broadcasting.",
+      "chapterName": "Relay Run"
+    },
+    {
+      "chapter": "panel",
+      "layer": "tl-panel",
+      "caption": "The Glass Lanes sparkle.",
+      "chapterName": "Hall of Mirrors"
+    },
+    {
+      "chapter": "mixed",
+      "layer": "tl-mixed",
+      "caption": "Starfall Night is on.",
+      "chapterName": "Grand Broadcast"
+    }
+  ],
+  "renames": {
+    "30": {
+      "from": "Chain Gang",
+      "to": "Pass It On"
+    }
+  }
+}

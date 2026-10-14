@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300">
+<!-- Iris: Otto portrait sheet. Build each mood from the 96x96 group; only brows, eyes and mouth change. -->
+<rect width="720" height="300" fill="#1b232d"/><text x="24" y="36" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="800" fill="#f0a986" letter-spacing="0.08em">OTTO</text><text x="24" y="58" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#9aa7b5">Mayor. viewBox 96x96. Ring #f0a986, ground #4c4950. Moods: neutral, happy, worried.</text><svg x="24" y="84" width="128" height="128" viewBox="0 0 96 96" role="img" aria-label="Otto, neutral">
+<defs><clipPath id="pc19"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc19)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 44 L44 43.4" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M52 43.4 L60 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="40" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="40.8" cy="49.5" r="0.8" fill="#e9edf1"/><ellipse cx="56" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="56.8" cy="49.5" r="0.8" fill="#e9edf1"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M44 64 Q48 66 52 64" fill="none" stroke="#7a3f34" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="88" y="236" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#9aa7b5" text-anchor="middle">neutral</text><svg x="176" y="84" width="128" height="128" viewBox="0 0 96 96" role="img" aria-label="Otto, happy">
+<defs><clipPath id="pc20"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc20)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 44 Q40 41 44 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M52 44 Q56 41 60 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M37 51.5 Q40 47.9 43 51.5" fill="none" stroke="#1b232d" stroke-width="2.3" stroke-linecap="round"/><path d="M53 51.5 Q56 47.9 59 51.5" fill="none" stroke="#1b232d" stroke-width="2.3" stroke-linecap="round"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M42 62 Q48 70 54 62 Z" fill="#7a3f34" stroke="#7a3f34" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="240" y="236" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#9aa7b5" text-anchor="middle">happy</text><svg x="328" y="84" width="128" height="128" viewBox="0 0 96 96" role="img" aria-label="Otto, worried">
+<defs><clipPath id="pc21"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc21)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 45 L43 42.4" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M53 42.4 L60 45" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="40" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="40.8" cy="49.5" r="0.8" fill="#e9edf1"/><ellipse cx="56" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="56.8" cy="49.5" r="0.8" fill="#e9edf1"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M44 65 Q48 62.4 52 65" fill="none" stroke="#7a3f34" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="392" y="236" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#9aa7b5" text-anchor="middle">worried</text><text x="600" y="100" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="700" fill="#9aa7b5" text-anchor="middle">In-card sizes</text><svg x="524" y="116" width="72" height="72" viewBox="0 0 96 96">
+<defs><clipPath id="pc22"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc22)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 44 L44 43.4" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M52 43.4 L60 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="40" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="40.8" cy="49.5" r="0.8" fill="#e9edf1"/><ellipse cx="56" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="56.8" cy="49.5" r="0.8" fill="#e9edf1"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M44 64 Q48 66 52 64" fill="none" stroke="#7a3f34" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="560" y="206" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#9aa7b5" text-anchor="middle">72 desktop</text><svg x="624" y="124" width="56" height="56" viewBox="0 0 96 96">
+<defs><clipPath id="pc23"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc23)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 44 L44 43.4" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M52 43.4 L60 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="40" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="40.8" cy="49.5" r="0.8" fill="#e9edf1"/><ellipse cx="56" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="56.8" cy="49.5" r="0.8" fill="#e9edf1"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M44 64 Q48 66 52 64" fill="none" stroke="#7a3f34" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="652" y="206" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#9aa7b5" text-anchor="middle">56 landscape</text><svg x="524" y="222" width="76" height="76" viewBox="0 0 96 96">
+<defs><clipPath id="pc24"><circle cx="48" cy="48" r="44.5"/></clipPath></defs>
+<circle cx="48" cy="48" r="47.5" fill="#f0a986"/><circle cx="48" cy="48" r="44.5" fill="#4c4950"/>
+<g clip-path="url(#pc24)">
+<ellipse cx="48" cy="102" rx="40" ry="27" fill="#e6dccb"/>
+<path d="M14 92 C20 80 32 77 40 77 L48 100 L56 77 C64 77 76 80 82 92 L82 110 H14 Z" fill="#a5604a"/>
+<path d="M26 80 L76 104 L72 112 L22 88 Z" fill="#ffd27a"/><path d="M26 80 L76 104" stroke="#d9ad5a" stroke-width="1.2"/>
+<rect x="41" y="64" width="14" height="14" rx="5" fill="#bb8a63"/>
+<path d="M40 76 L48 80 L40 84 Z M56 76 L48 80 L56 84 Z" fill="#5b6878"/><circle cx="48" cy="80" r="2.4" fill="#4a5563"/>
+<circle cx="28.6" cy="52" r="4.4" fill="#bb8a63"/><circle cx="67.4" cy="52" r="4.4" fill="#bb8a63"/>
+<ellipse cx="48" cy="51" rx="20" ry="19.5" fill="#d6a47c"/>
+<path d="M28.4 50 C27.6 42 30 38 33 36 C32 42 32.4 46 33.6 50 Z M67.6 50 C68.4 42 66 38 63 36 C64 42 63.6 46 62.4 50 Z" fill="#9aa0a8"/>
+<ellipse cx="41" cy="36" rx="6" ry="2.4" fill="#ffffff" opacity="0.16" transform="rotate(-18 41 36)"/>
+<path d="M36 44 L44 43.4" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M52 43.4 L60 44" stroke="#9aa0a8" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="40" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="40.8" cy="49.5" r="0.8" fill="#e9edf1"/><ellipse cx="56" cy="50.5" rx="2.4" ry="2.8" fill="#1b232d"/><circle cx="56.8" cy="49.5" r="0.8" fill="#e9edf1"/>
+<path d="M48 50.5 Q45.6 55.5 48.8 56" fill="none" stroke="#bb8a63" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="34" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/><circle cx="62" cy="57" r="3.4" fill="#c47a5a" opacity="0.32"/>
+<path d="M44 64 Q48 66 52 64" fill="none" stroke="#7a3f34" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M35 59 C39 54.5 45.5 55 48 57.4 C50.5 55 57 54.5 61 59 C57 62 51.5 61 48 59.6 C44.5 61 39 62 35 59 Z" fill="#9aa0a8"/></g>
+</svg><text x="640" y="266" font-family="ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#9aa7b5" text-anchor="middle">76 phone</text>
+</svg>
