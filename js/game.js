@@ -531,26 +531,32 @@
     board.setPreview(tile, free && type ? { tower: newTower(type, ...tile) } : null);
   }
 
-  // Ghost lift for touch and pen: the ghost sits above the finger.
-  // Near the bottom of the screen the lift shrinks (to zero at the very
-  // edge), so the ghost can still reach the bottom row when the board fills
-  // the screen height, as in phone landscape. The ghost's height keeps
-  // rising as the finger rises, so every tile stays reachable.
-  const fullLift = (pointerType) => (pointerType === 'mouse' ? 0 : Math.max(56, 1.1 * (board.tile || 40)));
-  const liftFor = (pointerType, clientY = 0) => {
-    const full = fullLift(pointerType);
-    if (!full) return 0;
-    const room = window.innerHeight - clientY;
-    return room >= full ? full : full * Math.max(0, room) / full;
-  };
+  // Drop target and ghost. For every pointer type the tower lands on the
+  // tile under the pointer (the finger, for touch). For touch and pen a
+  // copy of the tower floats above the finger so the finger doesn't hide
+  // it, lined up with the drop tile's column; the board marks the drop tile
+  // itself (board.dropMark) so it shows round the fingertip. With the mouse
+  // the ghost sits in the tile.
+  const liftFor = (pointerType) => (pointerType === 'mouse' ? 0 : Math.max(56, 1.1 * (board.tile || 40)));
+  // Where the floating ghost goes for an anchor point (the drop tile's
+  // centre, or the finger when off the board). With no room above, as on
+  // the top row in phone landscape, it moves to the side instead.
+  function ghostAt(x, y, pointerType) {
+    const lift = liftFor(pointerType);
+    if (!lift) return [x, y];
+    const half = ghostSize() / 2 + 2;
+    if (y - lift >= half) return [x, y - lift];
+    return [x + (x < window.innerWidth / 2 ? lift : -lift), Math.max(half, y)];
+  }
 
   function startDrag(source, type, e, from) {
     const facing = source === 'board' ? state.towers[from][2] : 0;
     drag = {
       source, type, facing, from, started: true, id: e.pointerId, pointerType: e.pointerType,
-      cx: e.clientX, cy: e.clientY, gx: e.clientX, gy: e.clientY - liftFor(e.pointerType, e.clientY), scale: 0.8, born: performance.now(),
+      cx: e.clientX, cy: e.clientY, gx: 0, gy: 0, scale: 0.8, born: performance.now(),
       target: null, valid: false, overTray: false,
     };
+    [drag.gx, drag.gy] = ghostAt(e.clientX, e.clientY, e.pointerType);
     if (source === 'board') {
       const tw = state.towers[from];
       board.setTowers(state.towers, { skip: from });
@@ -569,16 +575,19 @@
     updateDragPreview();
   }
 
+  // Where the ghost is heading: above the drop tile, or above the finger.
   function ghostCentre() {
-    return [drag.cx, drag.cy - liftFor(drag.pointerType, drag.cy)];
+    if (drag.target && !drag.overTray) return ghostAt(...tileCentre(...drag.target), drag.pointerType);
+    return ghostAt(drag.cx, drag.cy, drag.pointerType);
   }
 
   // The drop target for a pointer at (cx, cy): null over the tray or off
-  // the board, else the tile under the (lifted) ghost.
+  // the board, else the tile under the pointer. The pointer type no longer
+  // matters (it is kept so callers and tests stay the same).
   function targetAt(cx, cy, pointerType) {
     const tr = $('tray').getBoundingClientRect();
     const overTray = cx >= tr.left && cx <= tr.right && cy >= tr.top && cy <= tr.bottom;
-    return { overTray, tile: overTray ? null : board.tileAtPoint(cx, cy - liftFor(pointerType, cy), true) };
+    return { overTray, tile: overTray ? null : board.tileAtPoint(cx, cy, true) };
   }
 
   function updateDragPreview() {
@@ -592,6 +601,7 @@
     drag.own = !!own;
     drag.valid = !!tile && (own || (L.canPlace(state.grid, ...tile) && towerAt(...tile) < 0));
     board.ghost = false;
+    board.dropMark = drag.pointerType !== 'mouse';
     board.focusDish = null;
     board.hoverOk = drag.valid;
     board.setPreview(tile, tile && drag.valid ? { tower: newTower(drag.type, tile[0], tile[1], drag.facing) } : null);
@@ -602,6 +612,7 @@
     drag = null;
     $('tray').classList.remove('drop', 'removing');
     board.slot = null;
+    board.dropMark = false;
     board.setPreview(null);
     const fromChip = () => chipRect(d.type);
     if (d.source === 'board') {
@@ -628,6 +639,7 @@
     drag = null;
     $('tray').classList.remove('drop', 'removing');
     board.slot = null;
+    board.dropMark = false;
     if (state) board.setTowers(state.towers);
     board.setPreview(null);
     if (!instant && state) {
@@ -1000,6 +1012,11 @@
       dragCanvas.width = Math.round(w * dpr); dragCanvas.height = Math.round(h * dpr);
     }
     dragCanvas.dpr = dpr;
+    // Pin the CSS size to the same window size the backing store uses. With
+    // 100vw x 100vh, mobile Safari stretches the layer to its tallest
+    // viewport (toolbar hidden), so the ghost drew below the finger.
+    if (dragCanvas.style.width !== `${w}px`) dragCanvas.style.width = `${w}px`;
+    if (dragCanvas.style.height !== `${h}px`) dragCanvas.style.height = `${h}px`;
   }
   new ResizeObserver(fitBoard).observe($('stage'));
   window.addEventListener('resize', fitBoard);
@@ -1034,13 +1051,10 @@
     };
     if (drag) {
       const still = reducedMotion();
-      const [tx, ty] = ghostCentre();
-      let goalX = tx, goalY = ty, goalScale = 1, alpha = 0.85;
-      if (drag.target && !drag.overTray) {
-        const [cx, cy] = tileCentre(...drag.target);
-        goalX = cx; goalY = cy;
-        alpha = drag.valid ? 0.85 : 0.45;
-      } else { goalScale = 0.8; alpha = 0.5; }
+      const [goalX, goalY] = ghostCentre();
+      let goalScale = 1, alpha = 0.85;
+      if (drag.target && !drag.overTray) alpha = drag.valid ? 0.85 : 0.45;
+      else { goalScale = 0.8; alpha = 0.5; }
       const grow = still ? 1 : Math.min(1, (now - drag.born) / 120);
       const k = still ? 1 : Math.min(1, 16 / 80 * 1.6);
       drag.gx += (goalX - drag.gx) * (drag.target ? k : 1);
@@ -1048,9 +1062,11 @@
       drag.scale += (goalScale * (0.8 + 0.2 * grow) - drag.scale) * (still ? 1 : 0.35);
       const size = (drag.target ? board.tile : ghostSize()) * drag.scale;
       if (drag.pointerType !== 'mouse') {
+        // Tether from the ghost down to the drop tile (or the finger).
+        const [ax, ay] = drag.target && !drag.overTray ? tileCentre(...drag.target) : [drag.cx, drag.cy];
         dctx.strokeStyle = 'rgba(233, 237, 241, 0.35)';
         dctx.lineWidth = 2;
-        dctx.beginPath(); dctx.moveTo(drag.cx, drag.cy); dctx.lineTo(drag.gx, drag.gy + size * 0.35); dctx.stroke();
+        dctx.beginPath(); dctx.moveTo(ax, ay); dctx.lineTo(drag.gx, drag.gy + size * 0.35); dctx.stroke();
       }
       drawTower(drag.type, drag.facing, drag.gx, drag.gy, Math.max(size, 20), alpha, drag.target && !drag.valid);
     }

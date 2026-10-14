@@ -25,6 +25,7 @@
       this.preview = null;     // [x, y] tile under the pointer, or null
       this.previewSpec = null; // { tower: [x, y(, f)] } placement being previewed, or null
       this.ghost = false;      // draw the ghost tower at the preview tile
+      this.dropMark = false;   // touch drag: mark the drop tile so it shows round the finger
       this.hint = null;        // { x, y, kind: 'place' | 'remove' | 'turn', tower }
       this.focusDish = null;   // index of a dish under the mouse or keyboard cursor
       this.badgeUntil = 0;     // show rotate badges until this time (seconds)
@@ -669,6 +670,22 @@
       ctx.strokeStyle = ok ? 'rgba(255, 255, 255, 0.75)' : P.danger;
       ctx.lineWidth = Math.max(1.5, s * 0.04);
       path(); ctx.stroke();
+      // Touch drag: the tower lands on the tile under the finger, which the
+      // finger covers. A tinted tile and a wider ring that reaches past the
+      // tile's edges show the drop tile round the fingertip.
+      if (this.dropMark) {
+        const g = s * 0.14;
+        const col = ok ? P.accent : P.danger;
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = col;
+        A.roundRect(ctx, this.px(x), this.py(y), s, s, s * 0.14); ctx.fill();
+        ctx.globalAlpha = 1;
+        const ring = () => A.roundRect(ctx, this.px(x) - g, this.py(y) - g, s + g * 2, s + g * 2, s * 0.24);
+        ctx.strokeStyle = A.UNDERLAY; ctx.lineWidth = Math.max(4, s * 0.11);
+        ring(); ctx.stroke();
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(2.5, s * 0.07);
+        ring(); ctx.stroke();
+      }
       ctx.restore();
     }
 

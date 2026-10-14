@@ -59,9 +59,7 @@ async function touchDrag(page, cdp, from, to, { hold = 0, drop = true } = {}) {
   await page.waitForTimeout(80);
   if (drop) { await touch(cdp, 'touchEnd', to.x, to.y); await page.waitForTimeout(80); }
 }
-// Touch lifts the ghost above the finger: to aim at a tile, put the finger
-// below it by the lift distance.
-const lifted = (p) => ({ x: p.x, y: p.y + Math.max(56, 1.1 * p.size) });
+// Touch drops land on the tile under the finger (the ghost floats above it).
 
 // Play the current level with the mouse: even towers dragged from the
 // tray, odd towers tapped; dishes then turned by tapping.
@@ -286,13 +284,13 @@ async function playLevel(page, sol, useDrag = true) {
   s = await st(m);
   check(s.won && s.n === sol.length, `phone: level 15 solved by touch taps (${s.n} towers, moves ${s.moves})`);
 
-  // Touch drag from the tray, with the ghost lifted above the finger.
+  // Touch drag from the tray: the target is the tile under the finger.
   await m.evaluate(() => window.__signalTest.startLevel(1));
   await m.waitForTimeout(250);
   let target = await tile(m, 1, 2);
-  await touchDrag(m, cdp, await chip(m, 'mast'), lifted(target), { drop: false });
+  await touchDrag(m, cdp, await chip(m, 'mast'), target, { drop: false });
   const tmid = await m.evaluate(() => window.__signalTest.drag);
-  check(tmid && tmid.target && tmid.target.join() === '1,2', `touch drag targets the tile under the lifted ghost (${tmid && tmid.target})`);
+  check(tmid && tmid.target && tmid.target.join() === '1,2', `touch drag targets the tile under the finger (${tmid && tmid.target})`);
   await m.screenshot({ path: `${OUT}/drag-phone.png` });
   await touch(cdp, 'touchEnd', 0, 0); await m.waitForTimeout(100);
   s = await st(m);
@@ -300,7 +298,7 @@ async function playLevel(page, sol, useDrag = true) {
   // Touch move.
   const from = await tile(m, 1, 2);
   target = await tile(m, 0, 3);
-  await touchDrag(m, cdp, from, lifted(target));
+  await touchDrag(m, cdp, from, target);
   s = await st(m);
   check(s.towers[0].join() === '0,3' && s.moves === 2, `touch drag moves a placed tower (now ${s.towers[0].join()}, moves ${s.moves})`);
   // Touch remove: drag off the board onto the tray.
@@ -309,9 +307,9 @@ async function playLevel(page, sol, useDrag = true) {
   check(s.n === 0 && s.moves === 3, 'touch drag onto the tray removes the tower (1 move)');
   // Hold to place: the held tower lifts, release builds.
   target = await tile(m, 5, 2);
-  await touchDrag(m, cdp, lifted(target), lifted(target), { hold: 400 });
+  await touchDrag(m, cdp, target, target, { hold: 400 });
   s = await st(m);
-  check(s.n === 1 && s.towers[0].join() === '5,2' && s.moves === 4, `hold and release builds under the lifted ghost (${s.towers.map(String)})`);
+  check(s.n === 1 && s.towers[0].join() === '5,2' && s.moves === 4, `hold and release builds under the finger (${s.towers.map(String)})`);
   // Long press removes a tower.
   const lp = await tile(m, 5, 2);
   await touch(cdp, 'touchStart', lp.x, lp.y);
@@ -324,14 +322,14 @@ async function playLevel(page, sol, useDrag = true) {
   // A quick tap on a dish turns it (touch).
   await m.evaluate(() => window.__signalTest.startLevel(24));
   await m.waitForTimeout(200);
-  await touchDrag(m, cdp, await chip(m, 'dish'), lifted(await tile(m, 3, 2)));
+  await touchDrag(m, cdp, await chip(m, 'dish'), (await tile(m, 3, 2)));
   const dt = await tile(m, 3, 2);
   await m.touchscreen.tap(dt.x, dt.y); await m.waitForTimeout(80);
   await m.touchscreen.tap(dt.x, dt.y); await m.waitForTimeout(80);
   s = await st(m);
   check(s.towers[0][2] === 2 && s.moves === 1, `touch taps turn a dish for free (facing ${s.towers[0][2]}, moves ${s.moves})`);
   // Mid-drag of a dish over the board, for the screenshot.
-  await touchDrag(m, cdp, await chip(m, 'mast'), lifted(await tile(m, 4, 0)), { drop: false });
+  await touchDrag(m, cdp, await chip(m, 'mast'), (await tile(m, 4, 0)), { drop: false });
   await m.screenshot({ path: `${OUT}/drag-dish-level-phone.png` });
   await touch(cdp, 'touchEnd', 0, 0); await m.waitForTimeout(100);
   for (const [name, i, towers, hover] of shots) await showcase(m, `${name}-phone`, i, towers, null && hover);
@@ -356,7 +354,7 @@ async function playLevel(page, sol, useDrag = true) {
   // A drag in progress must stay smooth too.
   await m.evaluate(() => window.__signalTest.startLevel(36));
   await m.waitForTimeout(300);
-  await touchDrag(m, cdp, await chip(m, 'mast'), lifted(await tile(m, 4, 4)), { drop: false });
+  await touchDrag(m, cdp, await chip(m, 'mast'), (await tile(m, 4, 4)), { drop: false });
   const dragPerf = await m.evaluate(() => new Promise((res) => {
     const p = window.__signalPerf; const f0 = p.frames, m0 = p.renderMs, t0 = performance.now();
     setTimeout(() => res({ fps: (p.frames - f0) / ((performance.now() - t0) / 1000), ms: (p.renderMs - m0) / (p.frames - f0) }), 2000);
@@ -370,41 +368,40 @@ async function playLevel(page, sol, useDrag = true) {
   for (const [name, i, towers] of shots) await showcase(l, `${name}-landscape`, i, towers);
   await l.evaluate(() => window.__signalTest.startLevel(25));
   await l.waitForTimeout(300);
-  await touchDrag(l, lcdp, await chip(l, 'dish'), lifted(await tile(l, 3, 3)), { drop: false });
+  await touchDrag(l, lcdp, await chip(l, 'dish'), (await tile(l, 3, 3)), { drop: false });
   const lmid = await l.evaluate(() => window.__signalTest.drag);
   check(!!(lmid && lmid.target), 'landscape: dragging from the side tray reaches the board');
   await l.screenshot({ path: `${OUT}/drag-landscape.png` });
   await touch(lcdp, 'touchEnd', 0, 0); await l.waitForTimeout(100);
-  // Regression (fix round 1): every tile of every level can be reached by a
-  // touch drag on short landscape screens, and the drop lands where the
-  // ghost shows.
+  // Every placeable tile of every level is the drop target for a finger
+  // anywhere inside it (centre and near each corner), on short landscape
+  // screens and in portrait.
   const sweep = async (page) => page.evaluate(async () => {
     const g = window.__signalTest, misses = [];
     const frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    const spots = [[0.5, 0.5], [0.15, 0.15], [0.85, 0.15], [0.15, 0.85], [0.85, 0.85]];
     for (let i = 0; i < LEVELS.length; i++) {
       g.startLevel(i);
       await frame(); // let the board resize out of the menu layout
       const b = g.board, r = document.getElementById('board').getBoundingClientRect();
       for (let y = 0; y < g.state.grid.height; y++) for (let x = 0; x < g.state.grid.width; x++) {
         if (!window.SignalLogic.canPlace(g.state.grid, x, y)) continue;
-        const fx = r.left + b.ox + (x + 0.5) * b.tile;
-        let ok = false;
-        for (let fy = r.top + b.oy + y * b.tile; fy <= window.innerHeight && !ok; fy += 1) {
-          const t = g.targetAt(fx, fy, 'touch').tile;
-          ok = !!t && t[0] === x && t[1] === y;
-        }
+        const ok = spots.every(([u, v]) => {
+          const t = g.targetAt(r.left + b.ox + (x + u) * b.tile, r.top + b.oy + (y + v) * b.tile, 'touch').tile;
+          return !!t && t[0] === x && t[1] === y;
+        });
         if (!ok) misses.push(`${i + 1}:${x},${y}`);
       }
     }
     return misses;
   });
   let miss = await sweep(l);
-  check(miss.length === 0, `landscape 844x390: every placeable tile of every level is reachable by touch drag (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
+  check(miss.length === 0, `landscape 844x390: a finger anywhere on a placeable tile targets that tile, every level (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
   const { page: l2, ctx: l2ctx } = await open(browser, 'landscape-small', { viewport: { width: 667, height: 375 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   miss = await sweep(l2);
-  check(miss.length === 0, `landscape 667x375: every placeable tile of every level is reachable by touch drag (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
+  check(miss.length === 0, `landscape 667x375: a finger anywhere on a placeable tile targets that tile, every level (${miss.length} misses${miss.length ? ': ' + miss.slice(0, 5).join(' ') : ''})`);
   miss = await sweep(m);
-  check(miss.length === 0, `portrait 390x844: every placeable tile is reachable by touch drag (${miss.length} misses)`);
+  check(miss.length === 0, `portrait 390x844: a finger anywhere on a placeable tile targets that tile, every level (${miss.length} misses)`);
   // Real touch drags onto every bottom-row tile of level 37 at 667x375.
   const l2cdp = await l2ctx.newCDPSession(l2);
   await l2.evaluate(() => window.__signalTest.startLevel(36));
@@ -414,15 +411,10 @@ async function playLevel(page, sol, useDrag = true) {
   for (const [x, y] of bottom) {
     await l2.evaluate(() => window.__signalTest.startLevel(36));
     await l2.waitForTimeout(80);
-    const p0 = await tile(l2, x, y);
-    // Slide the finger down until the drag targets the tile, then drop.
-    await touch(l2cdp, 'touchStart', (await chip(l2, 'mast')).x, (await chip(l2, 'mast')).y);
-    let hitTarget = false;
-    for (let fy = p0.y; fy <= 375; fy += 2) {
-      await touch(l2cdp, 'touchMove', p0.x, fy);
-      const dg = await l2.evaluate(() => window.__signalTest.drag);
-      if (dg && dg.target && dg.target[0] === x && dg.target[1] === y) { hitTarget = true; break; }
-    }
+    // Drag from the tray straight onto the tile and drop.
+    await touchDrag(l2, l2cdp, await chip(l2, 'mast'), await tile(l2, x, y), { drop: false });
+    const dg = await l2.evaluate(() => window.__signalTest.drag);
+    const hitTarget = !!(dg && dg.target && dg.target[0] === x && dg.target[1] === y);
     await touch(l2cdp, 'touchEnd', 0, 0); await l2.waitForTimeout(80);
     const s2 = await st(l2);
     if (hitTarget && s2.n === 1 && s2.towers[0][0] === x && s2.towers[0][1] === y) placedOk++;
@@ -454,6 +446,96 @@ async function playLevel(page, sol, useDrag = true) {
   await l.evaluate(() => window.__signalTest.startLevel(36));
   await l.waitForTimeout(500);
   await l.screenshot({ path: `${OUT}/landscape-toast.png` });
+
+  // Regression (Kaden: "when placing towers it's not perfectly lined up with
+  // your finger"): real drags from the tray at several spots, some off the
+  // tile centre, land on the tile under the finger (or the mouse). Touch
+  // ghosts float straight above the drop tile, fully on screen, and the
+  // board marks the drop tile. The drag layer's CSS size matches its
+  // backing store at the device pixel ratio.
+  {
+    const devices = [
+      ['phone 390x844 @3x', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }, 'touch'],
+      ['landscape 844x390 @3x', { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }, 'touch'],
+      ['desktop 1280x800', { viewport: { width: 1280, height: 800 } }, 'mouse'],
+    ];
+    // Placeable tiles spread over the board: corners, edges and the middle.
+    const pickTiles = (page) => page.evaluate(() => {
+      const g = window.__signalTest.state.grid, ok = [];
+      for (let y = 0; y < g.height; y++) for (let x = 0; x < g.width; x++) if (window.SignalLogic.canPlace(g, x, y)) ok.push([x, y]);
+      const near = (tx, ty) => ok.reduce((b, t) => (Math.hypot(t[0] - tx, t[1] - ty) < Math.hypot(b[0] - tx, b[1] - ty) ? t : b));
+      const W = g.width - 1, H = g.height - 1;
+      const out = [near(0, 0), near(W, 0), near(W / 2, H / 2), near(0, H), near(W, H), near(W / 3, 0), near(2 * W / 3, H)];
+      return out.filter((t, i) => out.findIndex((u) => u.join() === t.join()) === i);
+    });
+    const offsets = [[0.5, 0.5], [0.2, 0.25], [0.8, 0.75], [0.75, 0.2], [0.25, 0.8]];
+    for (const [label, opts, kind] of devices) {
+      const { page: q, ctx: qctx } = await open(browser, `align-${label}`, opts);
+      const qcdp = kind === 'touch' ? await qctx.newCDPSession(q) : null;
+      const layer = await q.evaluate(() => {
+        const c = document.getElementById('drag-layer'), r = c.getBoundingClientRect(), dpr = Math.min(devicePixelRatio, 3);
+        return { ok: Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1 && c.width === Math.round(r.width * dpr) && c.height === Math.round(r.height * dpr), w: r.width, h: r.height, bw: c.width, bh: c.height };
+      });
+      check(layer.ok, `${label}: drag layer is window-sized and scaled by the pixel ratio (${layer.w}x${layer.h} css, ${layer.bw}x${layer.bh} backing)`);
+      let total = 0, good = 0;
+      const bad = [];
+      for (const level of [0, 14, 36]) {
+        await q.evaluate((i) => window.__signalTest.startLevel(i), level);
+        await q.waitForTimeout(150);
+        const tiles = await pickTiles(q);
+        for (const [x, y] of tiles) {
+          for (const [u, v] of offsets) {
+            total++;
+            await q.evaluate((i) => window.__signalTest.startLevel(i), level);
+            await q.waitForTimeout(40);
+            const t = await tile(q, x, y);
+            const finger = { x: t.x + (u - 0.5) * t.size, y: t.y + (v - 0.5) * t.size };
+            const from = await chip(q, 'mast');
+            if (kind === 'touch') await touchDrag(q, qcdp, from, finger, { drop: false });
+            else await mouseDrag(q, from, finger, { drop: false });
+            await q.waitForTimeout(150); // let the ghost settle
+            const mid = await q.evaluate(() => {
+              const g = window.__signalTest, d = g.drag;
+              return d && { target: d.target, ghost: d.ghost, mark: g.board.dropMark, tileSize: g.board.tile, w: innerWidth, h: innerHeight };
+            });
+            if (kind === 'touch') await touch(qcdp, 'touchEnd', 0, 0); else await q.mouse.up();
+            await q.waitForTimeout(60);
+            const s4 = await st(q);
+            // A winning drop shows the win screen after a pause; let it show
+            // before the next drag so it can't cancel that drag.
+            if (s4.won) await q.waitForTimeout(1000);
+            const why = [];
+            if (!mid || String(mid.target) !== `${x},${y}`) why.push(`target ${mid && mid.target}`);
+            if (!(s4.n === 1 && String(s4.towers[0].slice(0, 2)) === `${x},${y}`)) why.push(`landed ${s4.towers.map((w) => w.slice(0, 2).join(',')).join(' ') || 'nowhere'}`);
+            if (mid && kind === 'touch') {
+              const [gx, gy] = mid.ghost, half = mid.tileSize / 2;
+              const above = Math.abs(gx - t.x) < 0.5 && gy < t.y - half;
+              const side = Math.abs(gx - t.x) >= mid.tileSize && Math.abs(gy - t.y) <= 2 + half;
+              if (!above && !side) why.push(`ghost at ${gx.toFixed(1)},${gy.toFixed(1)} for tile centre ${t.x.toFixed(1)},${t.y.toFixed(1)}`);
+              if (gx - half < 0 || gx + half > mid.w || gy - half < 0 || gy + half > mid.h) why.push('ghost off screen');
+              if (!mid.mark) why.push('no drop mark');
+            }
+            if (mid && kind === 'mouse') {
+              if (Math.hypot(mid.ghost[0] - t.x, mid.ghost[1] - t.y) > 0.5) why.push('mouse ghost not in the tile');
+              if (mid.mark) why.push('drop mark shown for mouse');
+            }
+            if (why.length) bad.push(`L${level + 1} ${x},${y} @${u},${v}: ${why.join(', ')}`);
+            else good++;
+          }
+        }
+      }
+      check(good === total, `${label}: ${total} drags from the tray land on the tile under the ${kind === 'touch' ? 'finger' : 'cursor'} (${good} ok${bad.length ? '; ' + bad.slice(0, 4).join('; ') : ''})`);
+      if (kind === 'touch') {
+        await q.evaluate(() => window.__signalTest.startLevel(14));
+        await q.waitForTimeout(150);
+        await touchDrag(q, qcdp, await chip(q, 'mast'), await tile(q, 3, 4), { drop: false });
+        await q.waitForTimeout(200);
+        await q.screenshot({ path: `${OUT}/drop-under-finger-${label.split(' ')[0]}.png` });
+        await touch(qcdp, 'touchEnd', 0, 0); await q.waitForTimeout(60);
+      }
+      await qctx.close();
+    }
+  }
 
   // Regression: a resize mid-drag retargets the drop to the tile under the pointer.
   {

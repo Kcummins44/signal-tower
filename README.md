@@ -55,7 +55,7 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 - Tray: drag a tower or dish out onto the board. Drop it on the tray, off the board or on a blocked tile to cancel (no move). Tap a chip to choose which type a tile tap builds.
 - Drag a placed tower to another tile to move it (1 move), or off the board / onto the tray to remove it (1 move). A dish keeps its facing when moved.
 - Mouse: hover a tile to preview a tower's reach before you build. Hover a dish to see its cone and the next facing.
-- Touch: the dragged tower floats above your finger so you can see where it lands. Near the bottom of the screen it floats lower, so the bottom row can always be reached (phone landscape). Hold an empty tile to lift a tower there and preview it; release to build. Hold a tower to remove it.
+- Touch: the tower lands on the tile under your finger. That tile is tinted and ringed so it shows round your fingertip, and a copy of the tower floats straight above it (to the side on the top row when there is no room above) so your finger doesn't hide it. Hold an empty tile to lift a tower there and preview it; release to build. Hold a tower to remove it.
 - Keyboard: arrow keys move the cursor, Enter builds (or removes a tower, or turns a dish), `1` / `2` pick Tower / Dish, `M` picks up the tower under the cursor (arrows move it, Enter drops, Esc cancels), `Delete` removes, `Z` undoes, `R` resets, `H` shows a hint, `Esc` pauses.
 
 ## Files
@@ -98,7 +98,7 @@ npm run test:browser        # full playthrough, touch, performance, screenshots 
 
 The browser test does the following:
 - Plays all 38 levels with the solver's solutions, dragging towers from the tray and tapping, turning dishes by tapping, and expects 3 stars on each.
-- Tests drag and drop with the mouse and with touch: place, move, remove, cancel, the finger offset, hold to build and long press to remove.
+- Tests drag and drop with the mouse and with touch: place, move, remove, cancel, drops landing on the tile under the finger or cursor (100 drags each on phone portrait, phone landscape and desktop, including off-centre spots), hold to build and long press to remove.
 - Checks that turning a dish is free, the keyboard keys, undo (including moves and turns), reset, locked levels and chapters, saved progress (including an old 15-level save) and the mute setting.
 - Requires 60fps (including mid-drag), checks the tray never overlaps the board, and fails on any console error or warning.
 - Saves screenshots of each mechanic and of drags at 1280x800, 390x844 and 844x390.
