@@ -615,6 +615,9 @@
       const r = L.towerRadius(this.grid, tw[0], tw[1], tw[2]);
       const cx = this.px(tw[0]) + s / 2, cy = this.py(tw[1]) + s / 2;
       ctx.save();
+      // Clip to the board, so a cone near the edge stops at the edge.
+      A.roundRect(ctx, this.ox, this.oy, this.boardW, this.boardH, s * 0.14);
+      ctx.clip();
       ctx.lineWidth = Math.max(1, s * 0.03);
       ctx.setLineDash([s * 0.12, s * 0.1]);
       ctx.strokeStyle = 'rgba(127, 224, 208, 0.55)';

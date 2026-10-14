@@ -94,16 +94,26 @@
     if (name === 'title') updateTitle();
     requestAnimationFrame(fitBoard);
     const focusTarget = { title: 'title-play', levels: null, settings: 'settings-back', pause: 'pause-resume', win: 'win-next' }[name];
+    // The title's main button only takes focus for keyboard players, so a
+    // tap or a fresh load doesn't show a focus ring on it.
+    if (name === 'title' && !keyboardUser) return;
     if (focusTarget) setTimeout(() => { const el = $(focusTarget); if (el && !el.hidden) el.focus({ preventScroll: true }); }, 30);
   }
 
+  let keyboardUser = false;
+  addEventListener('keydown', () => { keyboardUser = true; }, true);
+  addEventListener('pointerdown', () => { keyboardUser = false; }, true);
+
+  // Each start or restart of a level is a new attempt. Timers set during
+  // an attempt (the win screen) check it, so a restart cancels them.
+  let attempt = 0;
   function startLevel(index) {
     const level = LEVELS[index];
     const grid = L.parseLevel(level);
     cancelDrag(true);
     closeCallout();
     state = {
-      index, level, grid, towers: [], moves: 0, history: [], hintUsed: false, won: false, lit: 0, violated: 0,
+      attempt: ++attempt, index, level, grid, towers: [], moves: 0, history: [], hintUsed: false, won: false, lit: 0, violated: 0,
       budget: { mast: level.towers, dish: level.dishes || 0 }, selected: level.towers > 0 ? 'mast' : 'dish',
     };
     board.setLevel(grid);
@@ -372,8 +382,12 @@
     progress.best[i] = Math.min(progress.best[i] ?? Infinity, state.moves);
     save();
     const last = i === LEVELS.length - 1;
+    // Pressing R (or leaving) within the 900ms makes a new attempt, and
+    // the win screen must not then pop up over the fresh level.
+    const run = state.attempt;
+    const live = () => state && state.attempt === run && state.won;
     setTimeout(() => {
-      if (!state || state.index !== i) return;
+      if (!live()) return;
       Audio.play('win');
       $('win-eyebrow').textContent = `Level ${i + 1} complete`;
       $('win-title').textContent = last ? 'Every town is connected' : 'All houses connected';
@@ -389,7 +403,7 @@
       starEls.forEach((el) => el.classList.remove('on'));
       showScreen('win');
       starEls.forEach((el, n) => {
-        if (n < stars) setTimeout(() => { el.classList.add('on'); Audio.play('star', n); }, 350 + n * 260);
+        if (n < stars) setTimeout(() => { if (!live()) return; el.classList.add('on'); Audio.play('star', n); }, 350 + n * 260);
       });
     }, 900);
   }
@@ -1060,7 +1074,8 @@
   }
   function setBannerOpen(el, b, open, stars, count) {
     el.classList.toggle('locked', !open);
-    el.querySelector('.k').textContent = open ? `Chapter ${b.n + 1}` : `Chapter ${b.n + 1}, opens after level ${b.first}`;
+    // Short enough to fit one line on a phone; the aria label says it in full.
+    el.querySelector('.k').textContent = open ? `Chapter ${b.n + 1}` : `Chapter ${b.n + 1}, after level ${b.first}`;
     el.querySelector('.s').innerHTML = open ? `<svg aria-hidden="true"><use href="#i-star"/></svg>${stars} / ${count * 3}` : '<svg aria-hidden="true"><use href="#i-lock"/></svg>';
     el.setAttribute('aria-label', `Chapter ${b.n + 1}, ${CHAPTERS[b.n].name}, ${open ? `${stars} of ${count * 3} stars` : `opens after level ${b.first}`}`);
   }
@@ -1138,9 +1153,9 @@
     const ctaH = cta.hidden ? 0 : cta.getBoundingClientRect().height;
     return { sc, h: Math.max(80, sc.clientHeight - ctaH) };
   }
-  function scrollMapTo(y, at, smooth) {
+  function scrollMapTo(y, at, smooth, maxTop = Infinity) {
     const { sc, h } = mapBand();
-    const top = Math.max(0, Math.min(sc.scrollHeight - sc.clientHeight, y - h * at));
+    const top = Math.max(0, Math.min(sc.scrollHeight - sc.clientHeight, y - h * at, maxTop));
     if (smooth && !reducedMotion()) sc.scrollTo({ top, behavior: 'smooth' });
     else sc.scrollTop = top;
   }
@@ -1156,7 +1171,12 @@
     renderMap(view, pendingAnim);
     const focusNode = view.cur >= 0 ? view.cur : LEVELS.length - 1;
     if (pendingAnim) scrollMapTo(map.nodes[view.animate[0]].y, 0.35);
-    else scrollMapTo(map.nodes[focusNode].y, 0.45);
+    else {
+      // If the level opens a chapter, keep that chapter's banner in view
+      // (short landscape screens would otherwise tuck it under the header).
+      const head = map.banners.find((b) => b.first === focusNode);
+      scrollMapTo(map.nodes[focusNode].y, 0.45, false, head ? head.top - 8 : Infinity);
+    }
     $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4);
     if (pendingAnim) startMapAnim(view);
     else if (view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');

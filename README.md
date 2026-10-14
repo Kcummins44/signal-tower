@@ -54,9 +54,16 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 **Controls:**
 - Tray: drag a tower or dish out onto the board. Drop it on the tray, off the board or on a blocked tile to cancel (no move). Tap a chip to choose which type a tile tap builds.
 - Drag a placed tower to another tile to move it (1 move), or off the board / onto the tray to remove it (1 move). A dish keeps its facing when moved.
-- Mouse: hover a tile to preview a tower's reach before you build. Hover a dish to see its cone and the next facing.
+- Mouse: hover a tile to preview a tower's reach before you build. Hover a dish to see its cone and the next facing (clipped to the board).
+- Walls block signal, and the tiles behind a wall look like plain ground. You see the block because the coverage tint and the radio waves stop at the wall. While you preview a placement, faint dashed squares mark the tiles that tower would reach if the wall weren't there.
 - Touch: the tower lands on the tile under your finger. That tile is tinted and ringed so it shows round your fingertip, and a copy of the tower floats straight above it (to the side on the top row when there is no room above) so your finger doesn't hide it. Hold an empty tile to lift a tower there and preview it; release to build. Hold a tower to remove it.
 - Keyboard: arrow keys move the cursor, Enter builds (or removes a tower, or turns a dish), `1` / `2` pick Tower / Dish, `M` picks up the tower under the cursor (arrows move it, Enter drops, Esc cancels), `Delete` removes, `Z` undoes, `R` resets, `H` shows a hint, `Esc` pauses.
+
+## Screens
+
+- **Start screen:** a night scene in which a tower lights up three houses in turn (Iris's `design/title-hero.svg`, still under reduced motion). One big button: **Play** on a fresh save, **Continue** with the next level's number and name, or **Play again** once every level is beaten (it opens the map). Below it are **Level map** and **Settings**, plus a stars and levels progress strip after the first clear. A sound button sits top right.
+- **Level map:** one winding road of circle buttons, level 1 at the top, with a banner across the road for each chapter. Locked levels show a lock (tapping one says which level to finish first). The next level to play is a big teal circle with pulse rings and its name. Beaten levels show their stars, and a gold ring for 3 stars. Houses along the road light up when their level is beaten. The map opens scrolled to your level, and the **Play level N** button at the bottom starts it. Keyboard: arrows move along the road, Home jumps to your level, Enter plays, Esc goes back.
+- **Road fill:** the first time you beat a level, the next time you open the map the road draws on to the next circle, a signal dot rides along it, and the next level pops open (a chapter banner opens as the road passes). It plays once: the save keeps a `road` count of segments already shown. Saves from before the map count every beaten level as shown. Any tap or key skips it.
 
 ## Files
 
@@ -66,16 +73,16 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 | `css/style.css` | Layout and UI styles (desktop, phone portrait and landscape) |
 | `js/logic.js` | Pure rules: line of sight, coverage, dishes, bounces, relay liveness, office blocks, observatories, and the solver. Shared with Node |
 | `js/art.js` | Canvas drawing for grass, hills, walls, trees, houses, towers, dishes, observatories, office blocks, the station and panels |
-| `js/board.js` | Board renderer: cached terrain, coverage and shadow overlay, masked radio waves (circles, cones, bounces), house and relay links, previews |
+| `js/board.js` | Board renderer: cached terrain, coverage overlay and blocked-tile preview hint, masked radio waves (circles, cones, bounces), house and relay links, previews |
 | `js/audio.js` | WebAudio sound effects |
-| `js/game.js` | Screens, tower tray and drag and drop, input (pointer and keyboard), undo, hints, stars, chapters, callouts, saved progress |
+| `js/game.js` | Screens (start screen, road-path level map and its road animation), tower tray and drag and drop, input (pointer and keyboard), undo, hints, stars, chapters, callouts, saved progress |
 | `js/levels.js` | **Generated.** Level data with tower budgets, star thresholds and hint solutions |
 | `tools/levels-src.js` | Level source maps. Edit these |
 | `tools/solve.js` | Solver. Proves every level is solvable and writes `js/levels.js` |
 | `tools/generate.js` | Level design helper that searches random maps for tight puzzles, with checks that each mechanic matters |
 | `tests/browser.js` | End-to-end headless browser test |
 | `tests/logic.test.js` | Unit tests for the rules (bounces, cones, relay, office blocks, observatories) |
-| `design/` | Iris's visual and interaction spec for v3, with SVG references |
+| `design/` | Iris's visual and interaction specs with SVG references: v3 mechanics, and the polish pass (start screen, level map, blocked tiles; `title-hero.svg` is used in the game) |
 
 ## Editing levels
 
@@ -90,7 +97,7 @@ To find new puzzles, run `node tools/generate.js` with no arguments to see its u
 ```sh
 npm install                 # dev only: installs Playwright
 npx playwright install chromium-headless-shell
-npm run serve &             # local server on port 8765
+npm run serve &             # local server on port 8765 (if that port is busy, serve elsewhere and set GAME_URL)
 npm run check               # solver check
 npm test                    # rule unit tests
 npm run test:browser        # full playthrough, touch, performance, screenshots in test-results/
@@ -100,7 +107,8 @@ The browser test does the following:
 - Plays all 38 levels with the solver's solutions, dragging towers from the tray and tapping, turning dishes by tapping, and expects 3 stars on each.
 - Tests drag and drop with the mouse and with touch: place, move, remove, cancel, drops landing on the tile under the finger or cursor (100 drags each on phone portrait, phone landscape and desktop, including off-centre spots), hold to build and long press to remove.
 - Checks that turning a dish is free, the keyboard keys, undo (including moves and turns), reset, locked levels and chapters, saved progress (including an old 15-level save) and the mute setting.
+- Checks the start screen at three sizes (fits, nothing overlaps, copy for fresh, mid and finished saves), the level map (locked, current, beaten and 3-star nodes, scroll position, keyboard and click navigation, the locked-level toast), the road fill (draws once after a first clear, opens a chapter, never replays, tap to skip, old saves), that wall-blocked tiles are never drawn dark, that pressing R just after a win never lets the win screen pop over the fresh level, and that a dish's cone stops at the board edge.
 - Requires 60fps (including mid-drag), checks the tray never overlaps the board, and fails on any console error or warning.
-- Saves screenshots of each mechanic and of drags at 1280x800, 390x844 and 844x390.
+- Saves screenshots of each mechanic and of drags, and (`polish-*.png`) of the start screen, the level map on a fresh and a mid-progress save and a level with wall-blocked tiles, at 1280x800, 390x844 and 844x390.
 
 Note for macOS 27: Playwright builds older than 1.63 ship a Chromium that macOS refuses to run.

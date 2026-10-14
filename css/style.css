@@ -266,6 +266,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
 .title-hero { display: block; width: min(88vw, 360px); height: auto; aspect-ratio: 320 / 220; margin-top: clamp(24px, 7vh, 72px); user-select: none; -webkit-user-drag: none; }
+/* The hero's own sky is a flat rectangle; fade its edges into the page
+   gradient so it reads as part of the screen, not a picture on it. */
+.title-hero {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent), linear-gradient(to bottom, transparent, #000 14%, #000);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent), linear-gradient(to bottom, transparent, #000 14%, #000);
+  mask-composite: intersect;
+}
 .title-text { display: flex; flex-direction: column; align-items: center; width: 100%; }
 .title-eyebrow { margin: 20px 0 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); }
 .title-word { margin: 6px 0 8px; font-size: 2.75rem; font-weight: 800; letter-spacing: -0.015em; line-height: 1.05; }
@@ -424,7 +432,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .map-banner .disc { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #303c4a; color: var(--warm); flex: none; transition: background 0.2s, color 0.2s; }
 .map-banner .disc svg { width: 22px; height: 22px; }
 .map-banner .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.map-banner .k { font-size: 10.5px; line-height: 1.25; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.map-banner .k { font-size: 10.5px; line-height: 1.25; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .map-banner .n { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .map-banner .s { display: flex; align-items: center; gap: 5px; color: var(--warm); font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .map-banner .s svg { width: 16px; height: 16px; }

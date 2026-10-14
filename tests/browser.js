@@ -609,6 +609,170 @@ async function playLevel(page, sol, useDrag = true) {
     await qctx.close();
   }
 
+  // Polish pass: start screen layout, level map navigation, the win timer
+  // race, the dish cone clip, and screenshots of the title, the map (fresh
+  // save and mid-progress) and a level with wall-blocked tiles, at three sizes.
+  {
+    const sizes = [
+      ['desktop', { viewport: { width: 1280, height: 800 } }],
+      ['phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }],
+      ['landscape', { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }],
+    ];
+    const MID = { stars: Object.fromEntries([...Array(17).keys()].map((i) => [i, i % 4 === 1 ? 2 : 3])), best: {}, sound: true, seen: {}, road: 17 };
+    const seed = async (p, data) => {
+      await p.evaluate((data) => { if (data) localStorage.setItem('signal-tower-v2', JSON.stringify(data)); else localStorage.removeItem('signal-tower-v2'); }, data);
+      await p.reload({ waitUntil: 'domcontentloaded' });
+      await p.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5);
+      await p.waitForTimeout(700); // entrance animation
+    };
+    for (const [label, opts] of sizes) {
+      const { page: p, ctx } = await open(browser, `polish-${label}`, opts);
+      const vw = opts.viewport.width, vh = opts.viewport.height;
+      // ----- Start screen -----
+      await seed(p, null);
+      const t = await p.evaluate(() => {
+        const r = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom, w: b.width, h: b.height }; };
+        const hero = document.querySelector('.title-hero');
+        const hr = hero.getBoundingClientRect();
+        return { hero: { l: hr.left, t: hr.top, r: hr.right, b: hr.bottom, loaded: hero.complete && hero.naturalWidth > 0 },
+          play: r('title-play'), map: r('title-levels'), settings: r('title-settings'), sound: r('title-sound'),
+          stage: getComputedStyle(document.getElementById('stage')).visibility,
+          scroll: document.getElementById('screen-title').scrollHeight <= document.getElementById('screen-title').clientHeight + 1 };
+      });
+      const inside = (b) => b.l >= 0 && b.t >= 0 && b.r <= vw + 0.5 && b.b <= vh + 0.5;
+      const overlap = (a, b) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+      check(t.hero.loaded && inside(t.hero) && inside(t.play) && inside(t.map) && inside(t.settings) && t.scroll,
+        `${label}: start screen fits the screen with the hero, Continue, Level map and Settings visible`);
+      check(!overlap(t.sound, t.hero) && !overlap(t.sound, t.play), `${label}: the sound button clears the hero and the main button`);
+      check(t.play.h >= 56 && t.play.w >= t.map.w * 1.5 && t.map.h >= 44, `${label}: the main button is the biggest target (${Math.round(t.play.w)}x${Math.round(t.play.h)})`);
+      check(t.stage === 'hidden', `${label}: no game board behind the start screen`);
+      await p.screenshot({ path: `${OUT}/polish-title-fresh-${label}.png` });
+      // ----- Map, fresh save -----
+      await p.click('#title-levels'); await p.waitForTimeout(400);
+      const fm = await p.evaluate(() => {
+        const nodes = [...document.querySelectorAll('.map-node')];
+        const cur = document.querySelector('.map-node.current').getBoundingClientRect();
+        const cta = document.getElementById('map-cta').getBoundingClientRect();
+        return { locked: nodes.filter((n) => n.classList.contains('locked')).length, n: nodes.length,
+          small: nodes.filter((n) => n.getBoundingClientRect().width < 44).length,
+          curVisible: cur.top >= 0 && cur.bottom <= cta.top + 48, focus: document.activeElement.dataset.level,
+          banner: document.querySelector('.map-banner').getBoundingClientRect().top >= document.getElementById('map-bar').getBoundingClientRect().bottom - 1 };
+      });
+      check(fm.n === N && fm.locked === N - 1 && fm.small === 0 && fm.curVisible && fm.banner, `${label}: fresh map has level 1 open, ${N - 1} locked, every node 44px or more, level 1 and the chapter 1 banner in view (${JSON.stringify(fm)})`);
+      await p.screenshot({ path: `${OUT}/polish-map-fresh-${label}.png` });
+      await p.click('#levels-back'); await p.waitForTimeout(250);
+      // ----- Mid-progress: title and map -----
+      await seed(p, MID);
+      check((await p.textContent('#title-play-label')) === 'Continue' && (await p.textContent('#title-play-sub')).startsWith('Level 18, ') && !(await p.locator('#title-progress').isHidden()),
+        `${label}: mid save says Continue, Level 18, with the progress strip`);
+      await p.screenshot({ path: `${OUT}/polish-title-mid-${label}.png` });
+      await p.click('#title-levels'); await p.waitForTimeout(400);
+      const mm = await p.evaluate(() => {
+        const sc = document.getElementById('map-scroll'), cta = document.getElementById('map-cta');
+        const band = sc.clientHeight - (cta.hidden ? 0 : cta.getBoundingClientRect().height);
+        const cur = document.querySelector('.map-node.current'), r = cur.getBoundingClientRect(), s = sc.getBoundingClientRect();
+        const lab = cur.nextElementSibling.getBoundingClientRect(), track = document.getElementById('map-track').getBoundingClientRect();
+        return { cur: cur.dataset.level, at: (r.top + r.height / 2 - s.top) / band, lines: document.querySelectorAll('.map-road .travelled .line').length,
+          perfect: document.querySelectorAll('.map-node.perfect').length, beaten: document.querySelectorAll('.map-node.beaten').length,
+          labelIn: lab.left >= track.left - 1 && lab.right <= track.right + 1 && lab.left >= 0 && lab.right <= innerWidth,
+          ch2: !document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), ch3: document.querySelector('.map-banner[data-chapter="2"]').classList.contains('locked') };
+      });
+      check(mm.cur === '17' && mm.lines === 17 && mm.beaten === 17 && mm.perfect === 13 && mm.ch2 && mm.ch3 && mm.labelIn && Math.abs(mm.at - 0.45) < 0.08,
+        `${label}: mid map: road filled to level 18, 13 gold and 4 teal nodes, chapter 2 open and 3 locked, level 18 at ${Math.round(mm.at * 100)}% of the view, label on screen`);
+      await p.screenshot({ path: `${OUT}/polish-map-mid-${label}.png` });
+      // ----- Map navigation (keyboard, once on desktop) -----
+      if (label === 'desktop') {
+        await p.keyboard.press('ArrowUp'); await p.keyboard.press('ArrowUp');
+        check((await p.evaluate(() => document.activeElement.dataset.level)) === '15', 'map: Up arrow moves focus back along the road');
+        await p.keyboard.press('ArrowDown'); await p.keyboard.press('ArrowDown'); await p.keyboard.press('ArrowDown');
+        check((await p.evaluate(() => document.activeElement.dataset.level)) === '18', 'map: Down arrow moves focus on, onto locked nodes too');
+        await p.keyboard.press('Enter'); await p.waitForTimeout(150);
+        check(!(await p.locator('#screen-levels').isHidden()) && (await p.textContent('#map-toast')) === 'Finish level 18 first.', 'map: Enter on a locked node stays on the map with a toast');
+        await p.keyboard.press('Home');
+        check((await p.evaluate(() => document.activeElement.dataset.level)) === '17', 'map: Home focuses the current level');
+        await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+        check((await st(p))?.index === 17, 'map: Enter on the current node starts that level');
+        await p.keyboard.press('Escape'); await p.click('#pause-levels'); await p.waitForTimeout(300);
+        await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+        check(!(await p.locator('#screen-title').isHidden()), 'map: Esc goes back to the title');
+        await p.click('#title-levels'); await p.waitForTimeout(300);
+        await p.click('.map-node[data-level="4"]'); await p.waitForTimeout(250);
+        check((await st(p))?.index === 4, 'map: clicking a beaten node replays that level');
+        await p.keyboard.press('Escape'); await p.click('#pause-levels'); await p.waitForTimeout(300);
+        await p.click('#map-play'); await p.waitForTimeout(250);
+        check((await st(p))?.index === 17, 'map: the Play button starts the current level');
+        // Win timer race: R within the 900ms before the win screen.
+        const solveNow = (i) => p.evaluate((i) => { const g = window.__signalTest; g.startLevel(i); for (const tw of g.state.level.solutions[0]) { g.selectType(tw.length > 2 ? 'dish' : 'mast'); g.act(tw[0], tw[1]); for (let f = 0; f < (tw[2] || 0); f++) g.act(tw[0], tw[1]); } return g.state.won; }, i);
+        check(await solveNow(0), 'race: level 1 solved through the test hook');
+        await p.waitForTimeout(300);
+        await p.keyboard.press('r');
+        await p.waitForTimeout(1200);
+        const race = await p.evaluate(() => ({ win: !document.getElementById('screen-win').hidden, won: window.__signalTest.state.won, towers: window.__signalTest.state.towers.length }));
+        check(!race.win && !race.won && race.towers === 0, `race: R pressed 300ms after a win restarts cleanly and the win screen never shows (${JSON.stringify(race)})`);
+        await solveNow(0); await p.waitForTimeout(1200);
+        check(!(await p.locator('#screen-win').isHidden()), 'race: without R the win screen still shows after a win');
+        await p.click('#win-replay'); await p.waitForTimeout(200);
+        // Dish cone: clipped to the board. Level 24 is dish only; put a dish
+        // on the top row facing north and compare the pixels above the board.
+        const clip = await p.evaluate(async () => {
+          // Read pixels from a copy, so the game's own canvas never sees a
+          // readback (Chrome warns about repeated getImageData on it).
+          const pixels = (cv) => { const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(cv, 0, 0); return x.getImageData(0, 0, c.width, c.height).data; };
+          const g = window.__signalTest, b = g.board, L = window.SignalLogic;
+          g.startLevel(23);
+          let x = 0; while (!L.canPlace(g.state.grid, x, 0)) x++;
+          g.selectType('dish'); g.act(x, 0);
+          const ctx = document.getElementById('board').getContext('2d'), dpr = b.dpr;
+          // Pixels above the board, left and right of the dish (its own
+          // focus badge pokes up just above it), where the cone's arc and
+          // edges would land if they were not clipped.
+          const W = ctx.canvas.width, H = ctx.canvas.height, cx = (b.ox + (x + 0.5) * b.tile) * dpr;
+          const top = Math.max(0, Math.round((b.oy - b.tile * 4) * dpr)), bot = Math.round((b.oy - 4) * dpr);
+          const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          const strip = () => {
+            const d = pixels(ctx.canvas), out = [];
+            for (let y = top; y < bot; y += 2) for (let px = 0; px < W; px += 2) {
+              if (Math.abs(px - cx) < b.tile * dpr || Math.abs(px - cx) > b.tile * 4 * dpr) continue;
+              const k = (y * W + px) * 4; out.push(d[k], d[k + 1], d[k + 2], d[k + 3]);
+            }
+            return out;
+          };
+          await new Promise((r) => setTimeout(r, 700));
+          await frame(); const before = strip();
+          b.focusDish = 0; await frame(); await frame();
+          const after = strip();
+          let diff = 0; for (let k = 0; k < before.length; k++) diff = Math.max(diff, Math.abs(before[k] - after[k]));
+          return { above: bot - top, diff, facing: g.state.towers[0][2], focus: b.focusDish };
+        });
+        check(clip.above > 0 && clip.focus === 0 && clip.diff <= 2, `dish cone stops at the board edge (max pixel change above the board: ${clip.diff})`);
+      }
+      // ----- A level with wall-blocked tiles -----
+      await p.evaluate(() => { const g = window.__signalTest; g.startLevel(1); g.act(2, 0); });
+      await p.waitForTimeout(500);
+      const dark = await p.evaluate(() => {
+        const g = window.__signalTest, b = g.board, ev = window.SignalLogic.evaluate(g.state.grid, g.state.towers);
+        const ctx = document.getElementById('board').getContext('2d'), dpr = b.dpr;
+        // Read pixels from a copy, so the game's own canvas never sees a
+        // readback (Chrome warns about repeated getImageData on it).
+        const pixels = (cv) => { const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(cv, 0, 0); return x.getImageData(0, 0, c.width, c.height).data; };
+        const W = ctx.canvas.width, img = pixels(ctx.canvas);
+        const lum = (x, y) => { const k = (Math.round((b.oy + (y + 0.2) * b.tile) * dpr) * W + Math.round((b.ox + (x + 0.5) * b.tile) * dpr)) * 4; return 0.2126 * img[k] + 0.7152 * img[k + 1] + 0.0722 * img[k + 2]; };
+        const sh = ev.reach[0].shadow;
+        return { n: sh.length, dark: sh.map(([x, y]) => lum(x, y)).filter((v) => v < 60).length };
+      });
+      check(dark.n > 0 && dark.dark === 0, `${label}: level 2 has ${dark.n} wall-blocked tiles and none is drawn dark`);
+      await p.screenshot({ path: `${OUT}/polish-walls-${label}.png` });
+      if (label === 'desktop') {
+        // Hovering a placement shows the faint dashed hint behind the wall.
+        const h = await tile(p, 4, 4); // (2, 4) is in reach but behind the lower wall
+        await p.mouse.move(h.x, h.y); await p.waitForTimeout(300);
+        await p.screenshot({ path: `${OUT}/polish-walls-preview-desktop.png` });
+        await p.mouse.move(5, 5);
+      }
+      await ctx.close();
+    }
+  }
+
   // Regression: a resize mid-drag retargets the drop to the tile under the pointer.
   {
     const { page: r } = await open(browser, 'resize', { viewport: { width: 1280, height: 800 } });
