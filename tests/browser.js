@@ -98,6 +98,7 @@ async function playLevel(page, sol, useDrag = true) {
   await d.screenshot({ path: `${OUT}/levels-fresh.png` });
   await d.click('#levels-back');
   await d.click('#title-play');
+  await d.waitForTimeout(320); // board input waits 300ms after a screen change
   // Undo and reset on level 1.
   let p = await tile(d, 0, 1); await d.mouse.click(p.x, p.y);
   await d.click('#undo-btn');
@@ -210,7 +211,20 @@ async function playLevel(page, sol, useDrag = true) {
     check(stars === 3 && lit === total && mv === sol.length,
       `level ${i + 1}: ${sol.length} towers${dishes ? ` (${dishes} dish)` : ''}, ${mv} moves, ${lit}/${total} lit, ${stars} stars`);
     if (i === N - 1) await d.screenshot({ path: `${OUT}/final-win.png` });
-    if (i < N - 1) { await d.click('#win-next'); await d.waitForTimeout(250); }
+    if (i < N - 1) {
+      // Next level goes by the map. Even levels: watch the road draw, then
+      // click the highlighted circle. Odd levels: click to skip the road,
+      // then press Enter on the focused circle.
+      await d.click('#win-next');
+      if (i % 2) { await d.waitForTimeout(350); await d.mouse.click(20, 400); await d.waitForTimeout(550); }
+      await d.waitForSelector(`.map-node.arrive[data-level="${i + 1}"]`, { timeout: 4000 });
+      await d.waitForFunction((n) => document.activeElement && document.activeElement.dataset.level === String(n), i + 1);
+      if (i % 2) await d.keyboard.press('Enter');
+      else await d.click(`.map-node.arrive[data-level="${i + 1}"]`);
+      await d.waitForTimeout(350);
+      const at = (await st(d))?.index;
+      if (at !== i + 1) check(false, `Next level after level ${i + 1} goes by the map to level ${i + 2} (at ${at})`);
+    }
   }
   check(await d.locator('#win-next').isHidden(), 'last level hides "Next level"');
   await d.click('#win-levels'); await d.waitForTimeout(3500);
@@ -497,13 +511,15 @@ async function playLevel(page, sol, useDrag = true) {
       const bad = [];
       for (const level of [0, 14, 36]) {
         await q.evaluate((i) => window.__signalTest.startLevel(i), level);
-        await q.waitForTimeout(150);
+        await q.waitForTimeout(350); // board input waits 300ms after a screen change
         const tiles = await pickTiles(q);
         for (const [x, y] of tiles) {
           for (const [u, v] of offsets) {
             total++;
+            const fromWin = await q.evaluate(() => !document.getElementById('screen-win').hidden);
             await q.evaluate((i) => window.__signalTest.startLevel(i), level);
-            await q.waitForTimeout(40);
+            // Leaving the win screen is a screen change: board input waits 300ms.
+            await q.waitForTimeout(fromWin ? 350 : 40);
             const t = await tile(q, x, y);
             const finger = { x: t.x + (u - 0.5) * t.size, y: t.y + (v - 0.5) * t.size };
             const from = await chip(q, 'mast');
@@ -777,6 +793,7 @@ async function playLevel(page, sol, useDrag = true) {
   {
     const { page: r } = await open(browser, 'resize', { viewport: { width: 1280, height: 800 } });
     await r.evaluate(() => window.__signalTest.startLevel(1));
+    await r.waitForTimeout(350);
     await r.waitForTimeout(200);
     const t12 = await tile(r, 1, 2);
     await mouseDrag(r, await chip(r, 'mast'), t12, { drop: false });
@@ -789,6 +806,166 @@ async function playLevel(page, sol, useDrag = true) {
     const expect = under;
     check(dg && String(dg.target) === String(expect) && (expect ? s3.n === 1 && String(s3.towers[0]) === String(expect) : s3.n === 0),
       `resize mid-drag: the drop lands on the tile now under the pointer (${expect}), placed ${s3.towers.map(String)}`);
+  }
+
+  // 2026-10-14 fixes: double tap never builds a stray tower, a resize during
+  // the road animation relays the map out when it ends, a damaged road count
+  // is clamped, and Next level goes by the map (road fill, then one tap in).
+  {
+    const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true };
+    const centre = (page, sel) => page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, sel);
+    const solveHook = (page, i) => page.evaluate((i) => { const g = window.__signalTest; g.startLevel(i); for (const t of g.state.level.solutions[0]) { g.selectType(t.length > 2 ? 'dish' : 'mast'); g.act(t[0], t[1]); for (let f = 0; f < (t[2] || 0); f++) g.act(t[0], t[1]); } }, i);
+    const win = async (page, i) => { await solveHook(page, i); await page.waitForSelector('#screen-win:not([hidden])'); await page.waitForTimeout(150); };
+    const save = (page, data) => page.evaluate((d) => localStorage.setItem('signal-tower-v2', JSON.stringify(d)), data);
+    const reload = async (page) => { await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5); await page.waitForTimeout(200); };
+    const beaten = (n) => Object.fromEntries([...Array(n).keys()].map((i) => [i, 3]));
+    const mapState = (page) => page.evaluate(() => ({
+      onMap: !document.getElementById('screen-levels').hidden, anim: window.__signalTest.mapAnim, packet: !!document.querySelector('.map-packet'),
+      arrive: document.querySelector('.map-node.arrive')?.dataset.level ?? null, focus: document.activeElement?.dataset?.level ?? null,
+      cur: document.querySelector('.map-node.current')?.dataset.level ?? null, level: window.__signalTest.state?.index ?? null,
+      road: JSON.parse(localStorage.getItem('signal-tower-v2')).road,
+    }));
+
+    // 1. Double tap on title Play (touch, 40 to 250ms apart, and a mouse double click).
+    const { page: q, ctx: qctx } = await open(browser, 'fix-phone', phone);
+    for (const gap of [40, 120, 250]) {
+      await q.evaluate(() => localStorage.clear()); await reload(q);
+      const b = await centre(q, '#title-play');
+      await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(gap); await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(150);
+      const s1 = await st(q);
+      check(s1 && s1.index === 0 && s1.n === 0 && s1.moves === 0, `double tap on title Play (${gap}ms apart) opens level 1 with an empty board (${JSON.stringify(s1 && { n: s1.n, moves: s1.moves })})`);
+    }
+    // After the guard a tap builds as normal.
+    await q.waitForTimeout(350);
+    let t = await tile(q, 0, 1); await q.touchscreen.tap(t.x, t.y); await q.waitForTimeout(100);
+    check((await st(q)).n === 1, 'a tap 300ms after the level opens still builds a tower');
+    // A finger that went down before the level began can't build on release.
+    await q.evaluate(() => { localStorage.clear(); });
+    await reload(q);
+    t = await tile(q, 0, 1); // board geometry from the last level is fine: we only need a point on the board
+    const qcdp = await qctx.newCDPSession(q);
+    await q.evaluate(() => window.__signalTest.startLevel(0));
+    await q.waitForTimeout(50);
+    const tt = await tile(q, 0, 1);
+    await touch(qcdp, 'touchStart', tt.x, tt.y);
+    await q.waitForTimeout(400);
+    await touch(qcdp, 'touchEnd', tt.x, tt.y); await q.waitForTimeout(150);
+    let s2 = await st(q);
+    check(s2.n === 0 && s2.moves === 0, `a touch that went down in the first 300ms of a level builds nothing on release (${s2.n} towers)`);
+    // Double tap on the win screen's Replay.
+    await win(q, 0);
+    await q.waitForTimeout(900);
+    let b = await centre(q, '#win-replay');
+    await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(90); await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(150);
+    s2 = await st(q);
+    check(s2.index === 0 && s2.n === 0 && s2.moves === 0 && !s2.won, `double tap on Replay restarts level 1 with an empty board (${s2.n} towers, ${s2.moves} moves)`);
+
+    // 4. Next level goes by the map. Fresh save: win level 1, tap Next.
+    await q.evaluate(() => localStorage.clear()); await reload(q);
+    await win(q, 0);
+    await q.waitForTimeout(900);
+    b = await centre(q, '#win-next');
+    // Double tap: the second tap must neither skip the road nor start a level.
+    await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(100); await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(300);
+    let ms = await mapState(q);
+    check(ms.onMap && ms.anim && ms.packet && ms.road === 1 && ms.arrive === null, `Next level after a first win opens the map and draws the road from level 1 (a double tap does not skip it) (${JSON.stringify(ms)})`);
+    await q.screenshot({ path: `${OUT}/fix-next-road-phone.png` });
+    await q.waitForTimeout(1600);
+    ms = await mapState(q);
+    check(!ms.anim && ms.arrive === '1' && ms.focus === '1' && ms.cur === '1', `when the road arrives, level 2 is current, focused and highlighted (${JSON.stringify(ms)})`);
+    const lbl = await q.evaluate(() => getComputedStyle(document.querySelector('.map-node.arrive + .map-label')).opacity);
+    check(lbl === '1', `the highlighted circle shows its name (label opacity ${lbl})`);
+    await q.screenshot({ path: `${OUT}/fix-next-arrive-phone.png` });
+    b = await centre(q, '.map-node.arrive');
+    await q.touchscreen.tap(b.x, b.y); await q.waitForTimeout(350);
+    s2 = await st(q);
+    check(s2 && s2.index === 1 && s2.n === 0, `one tap on the highlighted circle enters level 2 (at ${s2 && s2.index})`);
+    // A tap skips the road; the circle is then highlighted at once.
+    await win(q, 1);
+    await q.waitForTimeout(900);
+    await q.click('#win-next'); await q.waitForTimeout(400);
+    await q.touchscreen.tap(195, 300); await q.waitForTimeout(120);
+    ms = await mapState(q);
+    check(!ms.anim && !ms.packet && ms.arrive === '2' && ms.onMap && ms.level === null, `a tap skips the road and lands on level 3 without opening anything (${JSON.stringify(ms)})`);
+    // Replay of a beaten level: no new road, the map lands on the next circle.
+    await win(q, 0);
+    await q.waitForTimeout(900);
+    await q.click('#win-next'); await q.waitForTimeout(250);
+    ms = await mapState(q);
+    check(ms.onMap && !ms.anim && !ms.packet && ms.arrive === '1' && ms.cur === '2', `replaying beaten level 1, Next goes to the map with no road and level 2 highlighted (${JSON.stringify(ms)})`);
+    await q.waitForTimeout(150);
+    ms = await mapState(q);
+    check(ms.focus === '1', `... and level 2 focused (${ms.focus})`);
+    await q.keyboard.press('Enter'); await q.waitForTimeout(200);
+    check((await st(q))?.index === 1, 'Enter on the focused circle starts it');
+    // Replay and Level map buttons still do what they did.
+    await win(q, 1); await q.waitForTimeout(900);
+    await q.click('#win-replay'); await q.waitForTimeout(200);
+    s2 = await st(q);
+    check(s2.index === 1 && s2.n === 0 && !s2.won, 'win screen Replay still restarts the level');
+    await win(q, 1); await q.waitForTimeout(900);
+    await q.click('#win-levels'); await q.waitForTimeout(300);
+    ms = await mapState(q);
+    check(ms.onMap && ms.arrive === null && ms.focus === '2', `win screen Level map still opens the map at the current level (${JSON.stringify(ms)})`);
+    // Map events hook: a queued event plays after the road, before the landing.
+    await save(q, { stars: beaten(3), best: {}, sound: false, seen: {}, road: 3 }); await reload(q);
+    await win(q, 3); await q.waitForTimeout(900);
+    await q.evaluate(() => { window.__evLog = []; window.__signalTest.queueMapEvent((done) => { window.__evLog.push(document.querySelector('.map-node.arrive') ? 'late' : 'ran'); setTimeout(done, 200); }); });
+    await q.click('#win-next'); await q.waitForTimeout(400);
+    let ev = await q.evaluate(() => window.__evLog.slice());
+    check(ev.length === 0, `a queued map event waits for the road (${ev})`);
+    await q.waitForTimeout(1500);
+    ev = await q.evaluate(() => window.__evLog.slice());
+    ms = await mapState(q);
+    check(ev.join() === 'ran' && ms.arrive === '4', `then it runs once, and the map lands on level 5 after it (${ev}, arrive ${ms.arrive})`);
+
+    // 3. A damaged road count past the progress is clamped and the road still draws.
+    await save(q, { stars: beaten(6), best: {}, sound: false, seen: {}, road: 999 }); await reload(q);
+    await win(q, 6); await q.waitForTimeout(900);
+    await q.click('#win-next'); await q.waitForTimeout(500);
+    ms = await mapState(q);
+    check(ms.packet && ms.road === 7, `a damaged save with road 999 is clamped: winning level 7 still draws the road (${JSON.stringify(ms)})`);
+    await q.waitForTimeout(1300);
+    ms = await mapState(q);
+    check(ms.arrive === '7' && ms.cur === '7', `... and lands on level 8 (${JSON.stringify(ms)})`);
+    await qctx.close();
+
+    // 2. Rotate during the road animation: the map relays out when it ends.
+    const { page: r2, ctx: r2ctx } = await open(browser, 'fix-rotate', { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    await save(r2, { stars: beaten(4), best: {}, sound: false, seen: {}, road: 4 }); await reload(r2);
+    await win(r2, 4); await r2.waitForTimeout(900);
+    await r2.click('#win-levels'); await r2.waitForTimeout(500);
+    const was = await r2.evaluate(() => ({ anim: window.__signalTest.mapAnim, w: document.getElementById('map-track').getBoundingClientRect().width }));
+    await r2.setViewportSize({ width: 390, height: 844 });
+    await r2.waitForTimeout(1600);
+    const rot = await r2.evaluate(() => { const sc = document.getElementById('map-scroll'); return { anim: window.__signalTest.mapAnim, w: document.getElementById('map-track').getBoundingClientRect().width, over: sc.scrollWidth - sc.clientWidth, cur: document.querySelector('.map-node.current')?.dataset.level }; });
+    check(was.anim && was.w === 440 && !rot.anim && rot.w <= 390 - 32 && rot.over <= 0 && rot.cur === '5', `rotating during the road animation relays the map out when it ends (${was.w}px to ${rot.w}px, overflow ${rot.over})`);
+    await r2.screenshot({ path: `${OUT}/fix-rotate-after-anim-phone.png` });
+    // The same while the Next level flow plays, and the highlight survives.
+    await r2.setViewportSize({ width: 844, height: 390 }); await r2.waitForTimeout(200);
+    await win(r2, 5); await r2.waitForTimeout(900);
+    await r2.click('#win-next'); await r2.waitForTimeout(500);
+    await r2.setViewportSize({ width: 390, height: 844 });
+    await r2.waitForTimeout(1600);
+    const rot2 = await r2.evaluate(() => ({ w: document.getElementById('map-track').getBoundingClientRect().width, arrive: document.querySelector('.map-node.arrive')?.dataset.level, focus: document.activeElement?.dataset?.level }));
+    check(rot2.w <= 358 && rot2.arrive === '6' && rot2.focus === '6', `rotating during the Next level road: relaid out, level 7 still highlighted and focused (${JSON.stringify(rot2)})`);
+    await r2ctx.close();
+
+    // Reduced motion: no road drawing, the map lands on the next circle at once.
+    const { page: rm, ctx: rmctx } = await open(browser, 'fix-reduced', { ...phone, reducedMotion: 'reduce' });
+    await win(rm, 0); await rm.waitForTimeout(900);
+    await rm.click('#win-next'); await rm.waitForTimeout(150);
+    ms = await mapState(rm);
+    check(ms.onMap && !ms.anim && !ms.packet && ms.arrive === '1' && ms.road === 1, `reduced motion: Next level lands on level 2 at once, with no road animation (${JSON.stringify(ms)})`);
+    await rmctx.close();
+
+    // Desktop: a mouse double click on Play.
+    const { page: dd, ctx: ddctx } = await open(browser, 'fix-desktop', { viewport: { width: 1280, height: 800 } });
+    b = await centre(dd, '#title-play');
+    await dd.mouse.dblclick(b.x, b.y); await dd.waitForTimeout(200);
+    s2 = await st(dd);
+    check(s2 && s2.index === 0 && s2.n === 0 && s2.moves === 0, `mouse double click on Play opens level 1 with an empty board (${s2 && s2.n} towers)`);
+    await ddctx.close();
   }
 
   // Regression: damaged saves fall back safely.

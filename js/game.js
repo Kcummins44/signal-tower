@@ -53,7 +53,11 @@
       // road: how many map road segments have been shown as travelled. Saves
       // from before the level map count every beaten level as shown, so
       // they never replay the road animation.
-      const road = Number.isInteger(data.road) && data.road >= 0 ? data.road : Object.keys(stars).length;
+      // A real save never has road past the first unbeaten level, so a
+      // damaged one is clamped there (otherwise the road would never draw).
+      let frontier = 0;
+      while (stars[frontier]) frontier++;
+      const road = Number.isInteger(data.road) && data.road >= 0 ? Math.min(data.road, frontier) : Object.keys(stars).length;
       return {
         stars,
         best: numbers(data.best, (v) => v >= 0 && Number.isFinite(v)),
@@ -79,7 +83,16 @@
   const screens = ['title', 'levels', 'settings', 'pause', 'win'];
   let sessionDishSeen = false;
 
+  // Board and map input waits a moment after any screen change, so the
+  // second tap of a double tap on Play, Next or Replay can't build a tower
+  // on the fresh board (or skip the road). A pointer that went down before
+  // the change is ignored too.
+  const INPUT_GUARD_MS = 300;
+  let screenChangedAt = -1e9;
+  const inputGuarded = (e) => performance.now() - screenChangedAt < INPUT_GUARD_MS || (e && e.timeStamp < screenChangedAt);
+
   function showScreen(name) {
+    if (name !== screen) screenChangedAt = performance.now();
     screen = name;
     for (const s of screens) $('screen-' + s).hidden = s !== name;
     const inGame = name === null || name === 'pause' || name === 'win';
@@ -689,7 +702,7 @@
     refreshPreview();
   });
   canvas.addEventListener('pointerdown', (e) => {
-    if (!state || screen || press || drag || state.won) return;
+    if (!state || screen || press || drag || state.won || inputGuarded(e)) return;
     if (e.button && e.button !== 0) return;
     carry = null;
     const tile = board.tileAtPoint(e.clientX, e.clientY);
@@ -771,7 +784,7 @@
   dragCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   function chipDown(e, type, chip) {
-    if (!state || screen || press || drag || state.won) return;
+    if (!state || screen || press || drag || state.won || inputGuarded(e)) return;
     if (e.button && e.button !== 0) return;
     suppressClick = false;
     press = { id: e.pointerId, chip: type, x: e.clientX, y: e.clientY, type: e.pointerType };
@@ -885,7 +898,9 @@
   on('pause-restart', () => { Audio.play('click'); startLevel(state.index); });
   on('pause-levels', clicky(openLevels));
 
-  on('win-next', clicky(() => startLevel(state.index + 1)));
+  // Next level goes by the map: the road draws on to the next circle,
+  // which is then focused and highlighted, and one tap enters it.
+  on('win-next', clicky(() => openLevels({ after: state.index })));
   on('win-replay', clicky(() => startLevel(state.index)));
   on('win-levels', clicky(openLevels));
 
@@ -1140,6 +1155,7 @@
       track.appendChild(node);
       if (st !== 'locked') track.appendChild(buildLabel(i, st));
     }
+    markArrive();
     $('star-total').textContent = `${totalStars()} / ${N * 3}`;
     const cur = view.cur;
     $('map-cta').hidden = cur < 0;
@@ -1160,8 +1176,11 @@
     else sc.scrollTop = top;
   }
 
-  function openLevels() {
+  // `after`: the level just won (from the win screen's Next level). The
+  // map then lands on the circle after it once the map events have played.
+  function openLevels({ after = null } = {}) {
     stopMapAnim();
+    mapArrive = null;
     const view = mapView();
     // The road counter is saved as soon as the map opens, so the animation
     // plays once even if the map is left part way through.
@@ -1169,7 +1188,8 @@
     if (view.pending.length || progress.road < view.frontier) { progress.road = Math.max(progress.road, view.frontier); save(); }
     showScreen('levels');
     renderMap(view, pendingAnim);
-    const focusNode = view.cur >= 0 ? view.cur : LEVELS.length - 1;
+    let focusNode = view.cur >= 0 ? view.cur : LEVELS.length - 1;
+    if (after !== null) focusNode = pendingAnim ? view.animate[view.animate.length - 1] + 1 : Math.min(after + 1, LEVELS.length - 1);
     if (pendingAnim) scrollMapTo(map.nodes[view.animate[0]].y, 0.35);
     else {
       // If the level opens a chapter, keep that chapter's banner in view
@@ -1178,9 +1198,38 @@
       scrollMapTo(map.nodes[focusNode].y, 0.45, false, head ? head.top - 8 : Infinity);
     }
     $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4);
-    if (pendingAnim) startMapAnim(view);
-    else if (view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');
-    setTimeout(() => { const el = mapNodeEl(focusNode); if (el && screen === 'levels') el.focus({ preventScroll: true }); }, 30);
+    if (!pendingAnim && view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');
+    runMapEvents(view, focusNode, after !== null);
+  }
+
+  // ---------- Map events ----------
+  // What plays on the map as it opens, one after another: the road fill
+  // today. Other features (story scenes after a chapter win, say) add a
+  // step with queueMapEvent(fn) before the map opens; fn(done) plays it and
+  // calls done() when it ends. When the queue is empty the map lands on
+  // `focusNode`: focused, and highlighted when `arrive` is set.
+  const queuedMapEvents = [];
+  function queueMapEvent(fn) { queuedMapEvents.push(fn); }
+  function runMapEvents(view, focusNode, arrive) {
+    const steps = [];
+    if (view.animate.length) steps.push((done) => startMapAnim(view, done));
+    steps.push(...queuedMapEvents.splice(0));
+    const next = () => {
+      if (screen !== 'levels') return;
+      const step = steps.shift();
+      if (step) step(next);
+      else arriveAt(focusNode, arrive);
+    };
+    next();
+  }
+  let mapArrive = null; // node highlighted after a win (kept across a relayout)
+  function arriveAt(i, highlight) {
+    if (highlight) { mapArrive = i; markArrive(); }
+    setTimeout(() => { const el = mapNodeEl(i); if (el && screen === 'levels') el.focus({ preventScroll: true }); }, 30);
+  }
+  function markArrive() {
+    const el = mapArrive === null ? null : mapNodeEl(mapArrive);
+    if (el) el.classList.add('arrive');
   }
 
   const mapNodeEl = (i) => $('map-track').querySelector(`.map-node[data-level="${i}"]`);
@@ -1189,7 +1238,7 @@
 
   $('map-track').addEventListener('click', (e) => {
     const node = e.target.closest('.map-node');
-    if (!node || mapAnim || performance.now() - skippedAt < 500) return;
+    if (!node || mapAnim || performance.now() - skippedAt < 500 || inputGuarded()) return;
     const i = Number(node.dataset.level);
     if (node.classList.contains('locked')) {
       Audio.play('invalid');
@@ -1245,10 +1294,10 @@
     return 3 * u * u * (1 - u) + u ** 3;
   };
 
-  function startMapAnim(view) {
+  function startMapAnim(view, onEnd) {
     const timers = [];
     let raf = 0;
-    const anim = { view, timers, done: false, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
+    const anim = { view, timers, done: false, resized: false, onEnd, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
     mapAnim = anim;
     const at = (ms, fn) => timers.push(setTimeout(() => { if (mapAnim === anim) fn(); }, ms));
     const track = $('map-track');
@@ -1293,7 +1342,13 @@
       at(t0 + 820 + shift, () => unlockNode(k + 1, view));
       t0 += 1380 + shift + 150;
     });
-    at(t0 - 150, () => { mapAnim = null; anim.done = true; });
+    at(t0 - 150, () => {
+      mapAnim = null;
+      anim.done = true;
+      // A resize during the animation was skipped: lay the map out now.
+      if (anim.resized) relayoutMap(view);
+      if (onEnd) onEnd();
+    });
   }
 
   function openBanner(b) {
@@ -1332,24 +1387,39 @@
   // Skip: jump straight to the end state.
   function skipMapAnim() {
     if (!mapAnim) return;
-    const view = mapAnim.view;
+    const { view, onEnd } = mapAnim;
     stopMapAnim();
     const sc = $('map-scroll'), top = sc.scrollTop;
     renderMap(view, false);
     sc.scrollTop = top;
+    if (onEnd) { onEnd(); return; }
     const el = mapNodeEl(view.cur >= 0 ? view.cur : LEVELS.length - 1);
     if (el) el.focus({ preventScroll: true });
   }
   // A tap that skips must not also press the node under it.
   let skippedAt = -1e9;
-  $('screen-levels').addEventListener('pointerdown', (e) => { if (mapAnim) { skippedAt = performance.now(); e.stopPropagation(); skipMapAnim(); } }, true);
+  // The second tap of a double tap on Next level doesn't skip the road.
+  $('screen-levels').addEventListener('pointerdown', (e) => {
+    if (!mapAnim) return;
+    skippedAt = performance.now();
+    e.stopPropagation();
+    if (!inputGuarded(e)) skipMapAnim();
+  }, true);
 
-  // A resize rebuilds the map (positions depend on the window size).
-  window.addEventListener('resize', () => {
-    if (screen !== 'levels' || mapAnim) return;
+  // A resize rebuilds the map (positions depend on the window size). One
+  // during the road animation waits for it to end.
+  function relayoutMap(view) {
     const sc = $('map-scroll'), frac = sc.scrollTop / Math.max(1, sc.scrollHeight);
-    renderMap(mapView(), false);
+    const focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.map-node');
+    const at = focused ? focused.dataset.level : null;
+    renderMap(view, false);
     sc.scrollTop = frac * sc.scrollHeight;
+    if (at !== null) { const el = mapNodeEl(at); if (el) el.focus({ preventScroll: true }); }
+  }
+  window.addEventListener('resize', () => {
+    if (screen !== 'levels') return;
+    if (mapAnim) { mapAnim.resized = true; return; }
+    relayoutMap(mapView());
   });
 
   // ---------- Render loop and sizing ----------
@@ -1467,7 +1537,8 @@
 
   // Test hook for the automated playthrough; harmless for players.
   window.__signalTest = {
-    startLevel, act, undo, hint, selectType, board, targetAt,
+    startLevel, act, undo, hint, selectType, board, targetAt, openLevels, queueMapEvent,
+    get mapAnim() { return !!mapAnim; },
     get state() { return state; },
     get drag() { return drag && { source: drag.source, type: drag.type, target: drag.target, valid: drag.valid, overTray: drag.overTray, ghost: ghostCentre() }; },
     remaining: (type) => remaining(type),

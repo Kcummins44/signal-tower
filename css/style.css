@@ -424,6 +424,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .map-label .n { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .map-label.show { opacity: 1; }
 .map-node:hover + .map-label, .map-node:focus-visible + .map-label { opacity: 1; transition-delay: 150ms; }
+/* After a win the map lands on the next circle: a ring round it and its name shown. */
+.map-node.arrive { outline: 3px solid var(--accent); outline-offset: 5px; }
+.map-node.arrive + .map-label { opacity: 1; }
 .map-banner {
   position: absolute; z-index: 1; height: 64px; padding: 0 16px 0 12px; border-radius: 16px;
   display: flex; align-items: center; gap: 12px;
