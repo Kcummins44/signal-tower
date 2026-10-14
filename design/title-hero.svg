@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" width="640" height="440" role="img" aria-label="A radio tower on a hill at night sending signal rings to three houses">
+<!-- Iris: title hero for Signal Tower. Inline this SVG in #screen-title. Animated with CSS; reduced-motion fallback included. -->
+<style>
+.waves circle { transform-box: view-box; transform-origin: 160px 58px; animation: hero-wave 3s linear infinite; opacity: 0; }
+.waves circle:nth-child(2) { animation-delay: 1s; }
+.waves circle:nth-child(3) { animation-delay: 2s; }
+@keyframes hero-wave { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(6.5); opacity: 0; } }
+.beacon { animation: hero-blink 1.2s ease-in-out infinite alternate; }
+@keyframes hero-blink { from { opacity: 0.55; } to { opacity: 1; } }
+.star { animation: hero-twinkle 3.2s ease-in-out infinite alternate; }
+.star.sb { animation-duration: 2.6s; animation-delay: 0.7s; }
+.star.sc { animation-duration: 4s; animation-delay: 1.4s; }
+@keyframes hero-twinkle { from { opacity: 0.2; } to { opacity: 0.7; } }
+.h .win { animation: hero-lamp 6s steps(1, end) infinite; }
+.h2 .win { animation-delay: 0.35s; }
+.h3 .win { animation-delay: 0.7s; }
+@keyframes hero-lamp { 0% { fill: #3a4552; } 12% { fill: #ffd27a; } 88% { fill: #ffd27a; } 96% { fill: #3a4552; } }
+.links { animation: hero-links 6s ease-in-out infinite; }
+@keyframes hero-links { 0%, 10% { opacity: 0; } 22%, 86% { opacity: 0.55; } 96%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .waves circle, .beacon, .star, .h .win, .links { animation: none; }
+  .waves circle { opacity: 0.35; transform: scale(2.5); }
+  .h .win { fill: #ffd27a; }
+  .links { opacity: 0.55; }
+}
+</style>
+<rect width="320" height="220" fill="#1b232d"/>
+<defs>
+  <radialGradient id="hero-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#7fe0d0" stop-opacity="0.18"/><stop offset="1" stop-color="#7fe0d0" stop-opacity="0"/></radialGradient>
+  <linearGradient id="hero-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b232d" stop-opacity="0"/><stop offset="1" stop-color="#1b232d" stop-opacity="1"/></linearGradient>
+</defs>
+<circle cx="160" cy="70" r="120" fill="url(#hero-glow)"/>
+<circle class="star sa" cx="38" cy="28" r="1.2" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="84" cy="52" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="122" cy="20" r="1.4" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="214" cy="26" r="1.1" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="262" cy="48" r="1.3" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="292" cy="18" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="18" cy="74" r="0.9" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="300" cy="88" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<g class="waves" fill="none" stroke="#7fe0d0" stroke-width="2"><circle cx="160" cy="58" r="14"/><circle cx="160" cy="58" r="14"/><circle cx="160" cy="58" r="14"/></g>
+<path d="M0 158 C50 128 110 132 150 150 C200 124 270 118 320 140 V220 H0 Z" fill="#3f5f48"/>
+<path d="M58 220 C88 116 232 116 262 220 Z" fill="#5f7d55"/>
+<path d="M96 220 C114 136 206 136 224 220 Z" fill="#6f8d61"/>
+<path d="M0 196 C70 182 120 186 160 196 C210 184 270 180 320 192 V220 H0 Z" fill="#55705a"/>
+<g transform="translate(28 172)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(292 160)">
+  <ellipse cx="2" cy="1" rx="9" ry="3.1" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-9" r="9" fill="#3f5f48"/>
+  <circle cx="-2" cy="-11" r="5.4" fill="#4c6f53"/>
+</g><g transform="translate(232 200)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(118 202)">
+  <ellipse cx="2" cy="1" rx="7" ry="2.4" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-7" r="7" fill="#3f5f48"/>
+  <circle cx="-2" cy="-9" r="4.2" fill="#4c6f53"/>
+</g>
+<g class="links" fill="none" stroke="#7fe0d0" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" opacity="0.55">
+  <path d="M160 64 L66 150"/><path d="M160 64 L262 144"/><path d="M160 64 L84 190"/>
+</g>
+<g class="h h1" transform="translate(66 162)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h2" transform="translate(262 156)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h3" transform="translate(84 204)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g>
+<g class="tower" transform="translate(0 2)">
+  <ellipse cx="163" cy="168" rx="24" ry="5" fill="rgba(12,18,26,0.3)"/>
+  <rect x="140" y="156" width="40" height="11" rx="4.5" fill="#a9b0ba"/>
+  <rect x="140" y="154" width="40" height="8" rx="4" fill="#d5d9df"/>
+  <path d="M147 156 L156.5 72 M173 156 L163.5 72" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M149 144 L170 128 M171 144 L150 128 M151.5 124 L167 110 M168.5 124 L153 110 M154 106 L165.5 94 M166 106 L154.5 94" stroke="#8d95a1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M160 72 V62" stroke="#e8ebef" stroke-width="2.5" stroke-linecap="round"/>
+  <circle class="beacon" cx="160" cy="58" r="5" fill="#7fe0d0"/>
+</g>
+<rect x="0" y="196" width="320" height="24" fill="url(#hero-fade)"/>
+</svg>

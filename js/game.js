@@ -35,7 +35,7 @@
   // ---------- Saved progress ----------
   const progress = load();
   function load() {
-    const fallback = { stars: {}, best: {}, sound: true, seen: {} };
+    const fallback = { stars: {}, best: {}, sound: true, seen: {}, road: 0 };
     // Keep only well-formed fields, so a damaged save can never break the game.
     const numbers = (o, ok) => {
       const out = {};
@@ -49,11 +49,17 @@
       if (!data || typeof data !== 'object' || Array.isArray(data)) return fallback;
       const seen = {};
       if (data.seen && typeof data.seen === 'object') for (const k of Object.keys(data.seen)) if (data.seen[k] === true) seen[k] = true;
+      const stars = numbers(data.stars, (v) => v >= 1 && v <= 3 && Number.isInteger(v));
+      // road: how many map road segments have been shown as travelled. Saves
+      // from before the level map count every beaten level as shown, so
+      // they never replay the road animation.
+      const road = Number.isInteger(data.road) && data.road >= 0 ? data.road : Object.keys(stars).length;
       return {
-        stars: numbers(data.stars, (v) => v >= 1 && v <= 3 && Number.isInteger(v)),
+        stars,
         best: numbers(data.best, (v) => v >= 0 && Number.isFinite(v)),
         sound: data.sound !== false,
         seen,
+        road,
       };
     } catch { return fallback; }
   }
@@ -80,20 +86,15 @@
     app.classList.toggle('mode-menu', !inGame);
     app.classList.toggle('mode-game', inGame);
     for (const s of ['pause', 'win', 'settings']) $('screen-' + s).classList.toggle('dim', true);
-    if (!inGame) { showDemo(); $('toast').hidden = true; }
+    // Menus (title, map, settings) sit on the plain background; the board
+    // is hidden and not drawn.
+    if (!inGame) { state = null; $('toast').hidden = true; }
     if (name) { cancelDrag(true); closeCallout(); }
+    if (name !== 'levels') stopMapAnim();
+    if (name === 'title') updateTitle();
     requestAnimationFrame(fitBoard);
-    const focusTarget = { title: 'title-play', levels: 'levels-back', settings: 'settings-back', pause: 'pause-resume', win: 'win-next' }[name];
+    const focusTarget = { title: 'title-play', levels: null, settings: 'settings-back', pause: 'pause-resume', win: 'win-next' }[name];
     if (focusTarget) setTimeout(() => { const el = $(focusTarget); if (el && !el.hidden) el.focus({ preventScroll: true }); }, 30);
-  }
-
-  // Menus show a solved level, animated, behind the panels.
-  function showDemo() {
-    const lv = LEVELS[6];
-    state = null;
-    board.setLevel(L.parseLevel(lv));
-    board.setTowers(lv.solutions[0]);
-    board.setPreview(null);
   }
 
   function startLevel(index) {
@@ -858,7 +859,9 @@
   on('hint-btn', hint);
   on('mute-btn', () => setSound(!progress.sound, true));
 
-  on('title-play', clicky(() => startLevel(firstUnfinished())));
+  on('title-play', clicky(() => (allBeaten() ? openLevels() : startLevel(firstUnfinished()))));
+  on('title-sound', () => setSound(!progress.sound, true));
+  on('map-play', clicky(() => { const c = currentLevel(); if (c >= 0) startLevel(c); }));
   on('title-levels', clicky(openLevels));
   on('title-settings', clicky(() => { settingsReturn = 'title'; openSettings(); }));
   on('levels-back', clicky(() => showScreen('title')));
@@ -889,6 +892,7 @@
     progress.stars = {};
     progress.best = {};
     progress.seen = {};
+    progress.road = 0;
     save();
     btn.classList.remove('confirm');
     btn.textContent = 'Progress erased';
@@ -910,89 +914,423 @@
     Audio.setEnabled(enabled);
     $('sound-toggle').checked = enabled;
     $('pause-sound').checked = enabled;
-    const btn = $('mute-btn');
-    btn.querySelector('use').setAttribute('href', enabled ? '#i-sound' : '#i-mute');
-    btn.setAttribute('aria-label', enabled ? 'Mute sound' : 'Unmute sound');
-    btn.setAttribute('aria-pressed', String(!enabled));
+    for (const btn of [$('mute-btn'), $('title-sound')]) {
+      btn.querySelector('use').setAttribute('href', enabled ? '#i-sound' : '#i-mute');
+      btn.setAttribute('aria-label', enabled ? 'Mute sound' : 'Unmute sound');
+      btn.setAttribute('aria-pressed', String(!enabled));
+    }
     if (announce && enabled) Audio.play('click');
   }
 
-  // ---------- Level select ----------
-  function openLevels() {
-    const gridEl = $('level-grid');
-    gridEl.innerHTML = '';
-    let total = 0;
-    CHAPTERS.forEach((ch, n) => {
-      const idx = LEVELS.map((lv, i) => i).filter((i) => chapterOf(LEVELS[i]) === ch.id);
-      if (!idx.length) return;
-      const unlocked = isUnlocked(idx[0]);
-      const stars = idx.reduce((a, i) => a + starsFor(i), 0);
-      const head = document.createElement('div');
-      head.className = 'chapter-head' + (unlocked ? '' : ' locked') + (n === 0 ? ' first' : '');
-      head.innerHTML = `<svg class="ch-icon"><use href="#${ch.icon}"/></svg>` +
-        `<div class="ch-text"><span class="eyebrow-muted">Chapter ${n + 1}</span><strong></strong></div>` +
-        (unlocked ? `<span class="ch-stars"><svg><use href="#i-star"/></svg>${stars} / ${idx.length * 3}</span>`
-          : '<span class="ch-stars"><svg><use href="#i-lock"/></svg></span>');
-      head.querySelector('strong').textContent = ch.name;
-      head.setAttribute('aria-label', `Chapter ${n + 1}, ${ch.name}, ${unlocked ? `${stars} of ${idx.length * 3} stars` : 'locked'}`);
-      gridEl.appendChild(head);
-      for (const i of idx) {
-        const level = LEVELS[i];
-        const s = starsFor(i);
-        total += s;
-        const open = isUnlocked(i);
-        const card = document.createElement('button');
-        card.className = 'level-card';
-        card.disabled = !open;
-        card.setAttribute('aria-label', open ? `Level ${i + 1}, ${level.name}, ${s} of 3 stars` : `Level ${i + 1}, locked`);
-        const thumb = document.createElement('canvas');
-        card.appendChild(thumb);
-        card.insertAdjacentHTML('beforeend',
-          `<span class="num">${i + 1}</span><span class="lname"></span>` +
-          `<span class="stars">${[0, 1, 2].map((k) => `<svg class="${k < s ? 'on' : ''}"><use href="#i-star"/></svg>`).join('')}</span>` +
-          (open ? '' : '<span class="lock"><svg><use href="#i-lock"/></svg></span>'));
-        card.querySelector('.lname').textContent = level.name;
-        card.addEventListener('click', () => { Audio.play('click'); startLevel(i); });
-        gridEl.appendChild(card);
-        drawThumb(thumb, level, open);
-      }
-    });
-    $('star-total').textContent = `${total} / ${LEVELS.length * 3}`;
-    showScreen('levels');
-  }
-
-  function drawThumb(c, level, unlocked) {
-    const grid = L.parseLevel(level);
-    const n = Math.max(grid.width, grid.height);
-    const cell = 8;
-    c.width = c.height = n * cell;
-    const ctx = c.getContext('2d');
-    const P = A.PALETTE;
-    ctx.fillStyle = '#303c4a';
-    ctx.fillRect(0, 0, c.width, c.height);
-    const ox = ((n - grid.width) * cell) / 2, oy = ((n - grid.height) * cell) / 2;
-    const colors = { '.': P.grassA, H: P.roofLight, '#': P.wallTop, '^': P.hill[2], T: P.canopy,
-      Q: P.quiet, B: P.officeRoof, S: P.signal, '/': P.reflFace, L: P.reflFace };
-    grid.rows.forEach((row, y) => row.forEach((t, x) => {
-      const px = ox + x * cell, py = oy + y * cell;
-      if (!unlocked) { ctx.fillStyle = t === '.' ? '#3a4757' : '#455364'; ctx.fillRect(px, py, cell, cell); return; }
-      ctx.fillStyle = t === '/' || t === 'L' ? P.reflBase : colors[t];
-      ctx.fillRect(px, py, cell, cell);
-      if (t === '/' || t === 'L') {
-        ctx.strokeStyle = P.reflFace; ctx.lineWidth = 2;
-        ctx.beginPath();
-        if (t === '/') { ctx.moveTo(px + 1, py + cell - 1); ctx.lineTo(px + cell - 1, py + 1); }
-        else { ctx.moveTo(px + 1, py + 1); ctx.lineTo(px + cell - 1, py + cell - 1); }
-        ctx.stroke();
-      }
-      if (t === 'B') { ctx.fillStyle = P.windowOn; ctx.fillRect(px + 1, py + 1, 2, 2); ctx.fillRect(px + 5, py + 1, 2, 2); }
-    }));
-  }
-
+  // ---------- Title ----------
+  const allBeaten = () => LEVELS.every((_, i) => starsFor(i) > 0);
+  const totalStars = () => LEVELS.reduce((a, _, i) => a + starsFor(i), 0);
+  const beatenCount = () => LEVELS.filter((_, i) => starsFor(i) > 0).length;
+  let titleShown = false;
   function updateTitle() {
-    const done = LEVELS.filter((_, i) => starsFor(i)).length;
-    $('title-play-label').textContent = done > 0 && done < LEVELS.length ? `Continue: level ${firstUnfinished() + 1}` : 'Play';
+    const done = beatenCount(), N = LEVELS.length;
+    let label, sub;
+    if (done === N) { label = 'Play again'; sub = `All ${N} levels connected`; }
+    else {
+      const i = firstUnfinished();
+      label = done ? 'Continue' : 'Play';
+      sub = `Level ${i + 1}, ${LEVELS[i].name}`;
+    }
+    $('title-play-label').textContent = label;
+    $('title-play-sub').textContent = sub;
+    $('title-play').setAttribute('aria-label', `${label}, ${sub.charAt(0).toLowerCase()}${sub.slice(1)}`);
+    const stars = totalStars();
+    $('title-progress').hidden = done === 0;
+    $('title-stars').textContent = `${stars} / ${N * 3}`;
+    $('title-levels-done').textContent = `${done} of ${N} levels`;
+    $('title-meter').style.width = `${(100 * done) / N}%`;
+    $('title-progress').setAttribute('aria-label', `${stars} of ${N * 3} stars, ${done} of ${N} levels`);
+    // The entrance plays on the first title display after page load only.
+    $('screen-title').classList.toggle('enter', !titleShown && !reducedMotion());
+    titleShown = true;
   }
+
+  // ---------- Level map (road path) ----------
+  // Levels sit on one winding road, top to bottom. Node i is at
+  // x = CX + A sin(i pi / 3). See Iris's polish spec for the geometry.
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const currentLevel = () => (allBeaten() ? -1 : firstUnfinished());
+  const chapterIndex = (i) => CHAPTERS.findIndex((c) => c.id === chapterOf(LEVELS[i]));
+  const chapterLevels = (n) => LEVELS.map((_, i) => i).filter((i) => chapterIndex(i) === n);
+  let map = null;      // layout of the open map
+  let mapAnim = null;  // running road animation
+
+  function mapLayout() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const COL = Math.min(vw - 32, 440), CX = COL / 2, A = Math.round(COL * 0.26);
+    const SP = vh < 560 ? 88 : vw >= 900 ? 104 : 96;
+    const nodes = [], banners = [];
+    let y = 32;
+    CHAPTERS.forEach((ch, n) => {
+      const idx = chapterLevels(n);
+      if (!idx.length) return;
+      banners.push({ n, top: y, first: idx[0], last: idx[idx.length - 1] });
+      let cy = y + 64 + 70;
+      for (const i of idx) { nodes[i] = { x: CX + A * Math.sin((i * Math.PI) / 3), y: cy }; cy += SP; }
+      y = cy - SP + 76;
+    });
+    const last = nodes[nodes.length - 1].y;
+    return { COL, CX, A, SP, nodes, banners, height: last + 30 + 140 };
+  }
+
+  // What the map shows. Segment k joins level k to level k + 1.
+  function mapView() {
+    const cur = currentLevel();
+    const frontier = cur < 0 ? LEVELS.length : cur;
+    const N = LEVELS.length;
+    // Pending segments: beaten since the road was last shown. Animate at
+    // most the last two; older ones show as already travelled.
+    const pending = [];
+    for (let k = Math.min(progress.road, N - 1); k < Math.min(frontier, N - 1); k++) if (starsFor(k) > 0) pending.push(k);
+    return { cur, frontier, animate: reducedMotion() ? [] : pending.slice(-2), pending };
+  }
+
+  function nodeState(i, cur) {
+    if (i === cur) return 'current';
+    if (starsFor(i) > 0) return starsFor(i) === 3 ? 'beaten perfect' : 'beaten';
+    return isUnlocked(i) ? 'open' : 'locked';
+  }
+
+  const starPill = (s) => `<span class="pill" aria-hidden="true">${[0, 1, 2].map((k) => `<svg class="${k < s ? 'on' : 'off'}"><use href="#i-star"/></svg>`).join('')}</span>`;
+
+  function buildNode(i, st) {
+    const lv = LEVELS[i], p = map.nodes[i];
+    const d = st === 'current' ? 72 : 60;
+    const el = document.createElement('button');
+    el.className = `map-node ${st}`;
+    el.dataset.level = i;
+    el.style.cssText = `left:${p.x - d / 2}px;top:${p.y - d / 2}px;width:${d}px;height:${d}px`;
+    const s = starsFor(i);
+    if (st === 'locked') {
+      el.setAttribute('aria-disabled', 'true');
+      el.setAttribute('aria-label', `Level ${i + 1}, locked`);
+      el.innerHTML = '<svg aria-hidden="true"><use href="#i-lock"/></svg>';
+    } else {
+      el.innerHTML = `<span class="num">${i + 1}</span>`;
+      if (st === 'current') {
+        el.setAttribute('aria-label', `Level ${i + 1}, ${lv.name}, next to play`);
+        el.insertAdjacentHTML('beforeend', reducedMotion() ? '<span class="ring still"></span>' : '<span class="ring"></span><span class="ring"></span>');
+      } else if (s) {
+        el.setAttribute('aria-label', `Level ${i + 1}, ${lv.name}, ${s} of 3 stars`);
+        el.insertAdjacentHTML('beforeend', starPill(s));
+        el.querySelector('.pill').style.top = `${d / 2 + 21}px`;
+      } else el.setAttribute('aria-label', `Level ${i + 1}, ${lv.name}`);
+    }
+    return el;
+  }
+
+  // Name pill beside a node, on the side away from the road's swing.
+  function buildLabel(i, st) {
+    const p = map.nodes[i], d = st === 'current' ? 72 : 60;
+    const el = document.createElement('div');
+    const left = p.x > map.CX;
+    el.className = `map-label ${left ? 'left' : 'right'}${st === 'current' ? ' show' : ''}`;
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `<span class="k">Level ${i + 1}</span><span class="n"></span>`;
+    el.querySelector('.n').textContent = LEVELS[i].name;
+    const room = left ? p.x - d / 2 - 14 : map.COL - (p.x + d / 2 + 14);
+    el.style.maxWidth = `${Math.max(80, room)}px`;
+    el.style.top = `${p.y - 24}px`;
+    if (left) el.style.right = `${map.COL - (p.x - d / 2 - 14)}px`;
+    else el.style.left = `${p.x + d / 2 + 14}px`;
+    return el;
+  }
+
+  function buildBanner(b, open) {
+    const ch = CHAPTERS[b.n];
+    const idx = chapterLevels(b.n);
+    const stars = idx.reduce((a, i) => a + starsFor(i), 0);
+    const el = document.createElement('div');
+    const w = Math.min(map.COL - 24, 320);
+    el.className = `map-banner${open ? '' : ' locked'}`;
+    el.dataset.chapter = b.n;
+    el.setAttribute('role', 'heading');
+    el.setAttribute('aria-level', '3');
+    el.style.cssText = `left:${map.CX - w / 2}px;top:${b.top}px;width:${w}px`;
+    el.innerHTML = `<span class="disc"><svg aria-hidden="true"><use href="#${ch.icon}"/></svg></span>` +
+      '<span class="t"><span class="k"></span><span class="n"></span></span><span class="s"></span>';
+    el.querySelector('.n').textContent = ch.name;
+    setBannerOpen(el, b, open, stars, idx.length);
+    return el;
+  }
+  function setBannerOpen(el, b, open, stars, count) {
+    el.classList.toggle('locked', !open);
+    el.querySelector('.k').textContent = open ? `Chapter ${b.n + 1}` : `Chapter ${b.n + 1}, opens after level ${b.first}`;
+    el.querySelector('.s').innerHTML = open ? `<svg aria-hidden="true"><use href="#i-star"/></svg>${stars} / ${count * 3}` : '<svg aria-hidden="true"><use href="#i-lock"/></svg>';
+    el.setAttribute('aria-label', `Chapter ${b.n + 1}, ${CHAPTERS[b.n].name}, ${open ? `${stars} of ${count * 3} stars` : `opens after level ${b.first}`}`);
+  }
+
+  const segPath = (a, b) => {
+    const dy = b.y - a.y;
+    return `M${a.x.toFixed(1)} ${a.y} C${a.x.toFixed(1)} ${a.y + dy / 2} ${b.x.toFixed(1)} ${b.y - dy / 2} ${b.x.toFixed(1)} ${b.y}`;
+  };
+
+  // Scenery from Iris's title hero: a house (lit once its level is beaten)
+  // or a small tree, on the side of the road the road isn't on.
+  function sceneryFor(i, cur) {
+    const sn = Math.sin((i * Math.PI) / 3);
+    if (Math.abs(sn) < 0.5 || i === cur) return '';
+    const x = map.CX - 1.05 * map.A * sn, y = map.nodes[i].y + 14;
+    const locked = !isUnlocked(chapterLevels(chapterIndex(i))[0]);
+    const cls = `scenery${locked ? ' locked' : ''}`;
+    if (A.hash(i, 0) < 0.55) {
+      return `<g class="${cls}" transform="translate(${x.toFixed(1)} ${y})"><ellipse cx="2" cy="1" rx="9" ry="3.1" fill="rgba(12,18,26,0.28)"/>` +
+        '<circle cx="0" cy="-9" r="9" fill="#3f5f48"/><circle cx="-2" cy="-11" r="5.4" fill="#4c6f53"/></g>';
+    }
+    const win = starsFor(i) > 0 ? '#ffd27a' : '#3a4552';
+    return `<g class="${cls}" transform="translate(${x.toFixed(1)} ${y}) scale(0.9)"><ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>` +
+      '<rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/><rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>' +
+      '<path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/><path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>' +
+      '<rect x="5" y="-25" width="3" height="5" fill="#a5604a"/><rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>' +
+      `<rect x="-9" y="-10" width="5" height="4" rx="0.8" fill="${win}"/><rect x="4" y="-10" width="5" height="4" rx="0.8" fill="${win}"/></g>`;
+  }
+
+  // Builds the map. With `pre`, the segments in view.animate are drawn
+  // untravelled and their end nodes and banners as they were before.
+  function renderMap(view, pre) {
+    map = mapLayout();
+    const track = $('map-track');
+    track.innerHTML = '';
+    track.style.width = `${map.COL}px`;
+    track.style.height = `calc(${map.height}px + var(--safe-b))`;
+    $('screen-levels').style.setProperty('--col', `${map.COL}px`);
+    const N = LEVELS.length;
+    const animating = new Set(pre ? view.animate : []);
+    const hiddenNodes = new Set(pre ? view.animate.map((k) => k + 1) : []);
+    let all = '';
+    for (let k = 0; k < N - 1; k++) all += segPath(map.nodes[k], map.nodes[k + 1]) + ' ';
+    let scenery = '';
+    for (let i = 0; i < N; i++) scenery += sceneryFor(i, view.cur);
+    let travelled = '';
+    for (let k = 0; k < N - 1; k++) {
+      if (starsFor(k) > 0 && !animating.has(k)) {
+        const d = segPath(map.nodes[k], map.nodes[k + 1]);
+        travelled += `<path class="glow" d="${d}"/><path class="line" d="${d}"/>`;
+      }
+    }
+    track.insertAdjacentHTML('beforeend', `<svg class="map-road" xmlns="${SVGNS}" width="${map.COL}" height="${map.height}" viewBox="0 0 ${map.COL} ${map.height}" aria-hidden="true">` +
+      `${scenery}<path class="shadow" d="${all}"/><path class="bed" d="${all}"/><path class="dots" d="${all}"/><g class="travelled">${travelled}</g></svg>`);
+    for (const b of map.banners) {
+      const open = isUnlocked(b.first) && !(hiddenNodes.has(b.first));
+      track.appendChild(buildBanner(b, open));
+    }
+    for (let i = 0; i < N; i++) {
+      const st = hiddenNodes.has(i) ? 'locked' : nodeState(i, view.cur);
+      const node = buildNode(i, st);
+      track.appendChild(node);
+      if (st !== 'locked') track.appendChild(buildLabel(i, st));
+    }
+    $('star-total').textContent = `${totalStars()} / ${N * 3}`;
+    const cur = view.cur;
+    $('map-cta').hidden = cur < 0;
+    if (cur >= 0) $('map-play-label').textContent = `Play level ${cur + 1}`;
+  }
+
+  // The scroll area's visible band: minus the CTA bar at the bottom.
+  function mapBand() {
+    const sc = $('map-scroll');
+    const cta = $('map-cta');
+    const ctaH = cta.hidden ? 0 : cta.getBoundingClientRect().height;
+    return { sc, h: Math.max(80, sc.clientHeight - ctaH) };
+  }
+  function scrollMapTo(y, at, smooth) {
+    const { sc, h } = mapBand();
+    const top = Math.max(0, Math.min(sc.scrollHeight - sc.clientHeight, y - h * at));
+    if (smooth && !reducedMotion()) sc.scrollTo({ top, behavior: 'smooth' });
+    else sc.scrollTop = top;
+  }
+
+  function openLevels() {
+    stopMapAnim();
+    const view = mapView();
+    // The road counter is saved as soon as the map opens, so the animation
+    // plays once even if the map is left part way through.
+    const pendingAnim = view.animate.length > 0;
+    if (view.pending.length || progress.road < view.frontier) { progress.road = Math.max(progress.road, view.frontier); save(); }
+    showScreen('levels');
+    renderMap(view, pendingAnim);
+    const focusNode = view.cur >= 0 ? view.cur : LEVELS.length - 1;
+    if (pendingAnim) scrollMapTo(map.nodes[view.animate[0]].y, 0.35);
+    else scrollMapTo(map.nodes[focusNode].y, 0.45);
+    $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4);
+    if (pendingAnim) startMapAnim(view);
+    else if (view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');
+    setTimeout(() => { const el = mapNodeEl(focusNode); if (el && screen === 'levels') el.focus({ preventScroll: true }); }, 30);
+  }
+
+  const mapNodeEl = (i) => $('map-track').querySelector(`.map-node[data-level="${i}"]`);
+
+  $('map-scroll').addEventListener('scroll', () => $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4), { passive: true });
+
+  $('map-track').addEventListener('click', (e) => {
+    const node = e.target.closest('.map-node');
+    if (!node || mapAnim || performance.now() - skippedAt < 500) return;
+    const i = Number(node.dataset.level);
+    if (node.classList.contains('locked')) {
+      Audio.play('invalid');
+      bump(node);
+      mapToast(`Finish level ${i} first.`);
+      return;
+    }
+    Audio.play('click');
+    startLevel(i);
+  });
+
+  let mapToastTimer = 0;
+  function mapToast(text) {
+    const el = $('map-toast');
+    el.textContent = text;
+    el.hidden = false;
+    el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    clearTimeout(mapToastTimer);
+    mapToastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+  }
+
+  // Keyboard on the map: arrows move between nodes, Home goes to the
+  // current node, Esc goes back. Enter and Space press the focused node.
+  document.addEventListener('keydown', (e) => {
+    if (screen !== 'levels' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (mapAnim) { skipMapAnim(); e.preventDefault(); return; }
+    const k = e.key;
+    if (k === 'Escape') { e.preventDefault(); Audio.play('click'); showScreen('title'); return; }
+    const focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.map-node');
+    const at = focused ? Number(focused.dataset.level) : -1;
+    let to = null;
+    if (k === 'ArrowUp' || k === 'ArrowLeft') to = Math.max(0, at < 0 ? 0 : at - 1);
+    else if (k === 'ArrowDown' || k === 'ArrowRight') to = Math.min(LEVELS.length - 1, at + 1);
+    else if (k === 'Home') to = currentLevel() >= 0 ? currentLevel() : LEVELS.length - 1;
+    if (to === null) return;
+    e.preventDefault();
+    const el = mapNodeEl(to);
+    if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); }
+  });
+
+  // ---------- Road animation ----------
+  // Timeline per segment k -> k + 1 (t = 0 is 250ms after the map opens):
+  // 0 node k pops; 120 the line draws (700ms, 900 across a banner) with a
+  // packet riding its head; then node k + 1 unlocks with a pop and a burst
+  // ring; 360ms later its name label fades in. Any tap or key skips.
+  const ease = (t) => { // cubic-bezier(.45, 0, .25, 1), solved numerically
+    let lo = 0, hi = 1;
+    for (let n = 0; n < 20; n++) {
+      const m = (lo + hi) / 2, x = 3 * 0.45 * m * (1 - m) ** 2 + 3 * 0.25 * m * m * (1 - m) + m ** 3;
+      if (x < t) lo = m; else hi = m;
+    }
+    const u = (lo + hi) / 2;
+    return 3 * u * u * (1 - u) + u ** 3;
+  };
+
+  function startMapAnim(view) {
+    const timers = [];
+    let raf = 0;
+    const anim = { view, timers, done: false, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
+    mapAnim = anim;
+    const at = (ms, fn) => timers.push(setTimeout(() => { if (mapAnim === anim) fn(); }, ms));
+    const track = $('map-track');
+    const svg = track.querySelector('.map-road .travelled');
+    let t0 = 250;
+    view.animate.forEach((k) => {
+      const a = map.nodes[k], b = map.nodes[k + 1];
+      const banner = map.banners.find((bn) => bn.first === k + 1);
+      const drawMs = banner ? 900 : 700;
+      const shift = banner ? 200 : 0;
+      at(t0, () => {
+        const n = mapNodeEl(k);
+        if (n) { n.classList.remove('ack'); void n.offsetWidth; n.classList.add('ack'); }
+        Audio.play('lift');
+      });
+      at(t0 + 120, () => {
+        const d = segPath(a, b);
+        svg.insertAdjacentHTML('beforeend', `<path class="glow" d="${d}"/><path class="line" d="${d}"/>`);
+        const paths = [...svg.querySelectorAll('path')].slice(-2);
+        const len = paths[1].getTotalLength();
+        paths.forEach((p) => { p.style.strokeDasharray = `${len} ${len}`; p.style.strokeDashoffset = `${len}`; });
+        const packet = document.createElement('div');
+        packet.className = 'map-packet';
+        track.appendChild(packet);
+        const { sc, h } = mapBand();
+        if (b.y > sc.scrollTop + h - 40) scrollMapTo(b.y, 0.55, true);
+        const start = performance.now();
+        let opened = false;
+        const step = (now) => {
+          if (mapAnim !== anim) { packet.remove(); return; }
+          const p = Math.min(1, (now - start) / drawMs);
+          const e = ease(p);
+          paths.forEach((el) => { el.style.strokeDashoffset = `${len * (1 - e)}`; });
+          const pt = paths[1].getPointAtLength(len * e);
+          packet.style.left = `${pt.x}px`; packet.style.top = `${pt.y}px`;
+          if (banner && !opened && pt.y >= banner.top) { opened = true; openBanner(banner); }
+          if (p < 1) raf = requestAnimationFrame(step);
+          else { packet.remove(); paths.forEach((el) => { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; }); }
+        };
+        raf = requestAnimationFrame(step);
+      });
+      at(t0 + 820 + shift, () => unlockNode(k + 1, view));
+      t0 += 1380 + shift + 150;
+    });
+    at(t0 - 150, () => { mapAnim = null; anim.done = true; });
+  }
+
+  function openBanner(b) {
+    const el = $('map-track').querySelector(`.map-banner[data-chapter="${b.n}"]`);
+    if (!el) return;
+    const idx = chapterLevels(b.n);
+    setBannerOpen(el, b, true, idx.reduce((a, i) => a + starsFor(i), 0), idx.length);
+    el.classList.remove('opening'); void el.offsetWidth; el.classList.add('opening');
+  }
+
+  function unlockNode(i, view) {
+    const old = mapNodeEl(i);
+    if (!old) return;
+    const st = nodeState(i, view.cur);
+    const el = buildNode(i, st);
+    const d = st === 'current' ? 72 : 60;
+    el.style.setProperty('--from', String(60 / d));
+    el.classList.add('unlocking');
+    el.insertAdjacentHTML('beforeend', '<span class="lock-out" aria-hidden="true"><svg><use href="#i-lock"/></svg></span><span class="burst" aria-hidden="true"></span>');
+    // The idle pulse rings wait until the label is in.
+    el.querySelectorAll('.ring').forEach((r, n) => { r.style.animationDelay = `${360 + n * 900}ms`; });
+    old.replaceWith(el);
+    const label = buildLabel(i, st);
+    if (st === 'current') { label.classList.remove('show'); setTimeout(() => label.classList.add('show', 'label-in'), 360); }
+    el.after(label);
+    setTimeout(() => { el.querySelectorAll('.lock-out, .burst').forEach((x) => x.remove()); el.classList.remove('unlocking'); }, 650);
+    Audio.play('chime');
+  }
+
+  function stopMapAnim() {
+    if (!mapAnim) return;
+    const a = mapAnim;
+    mapAnim = null;
+    a.stop();
+  }
+  // Skip: jump straight to the end state.
+  function skipMapAnim() {
+    if (!mapAnim) return;
+    const view = mapAnim.view;
+    stopMapAnim();
+    const sc = $('map-scroll'), top = sc.scrollTop;
+    renderMap(view, false);
+    sc.scrollTop = top;
+    const el = mapNodeEl(view.cur >= 0 ? view.cur : LEVELS.length - 1);
+    if (el) el.focus({ preventScroll: true });
+  }
+  // A tap that skips must not also press the node under it.
+  let skippedAt = -1e9;
+  $('screen-levels').addEventListener('pointerdown', (e) => { if (mapAnim) { skippedAt = performance.now(); e.stopPropagation(); skipMapAnim(); } }, true);
+
+  // A resize rebuilds the map (positions depend on the window size).
+  window.addEventListener('resize', () => {
+    if (screen !== 'levels' || mapAnim) return;
+    const sc = $('map-scroll'), frac = sc.scrollTop / Math.max(1, sc.scrollHeight);
+    renderMap(mapView(), false);
+    sc.scrollTop = frac * sc.scrollHeight;
+  });
 
   // ---------- Render loop and sizing ----------
   function fitBoard() {
@@ -1099,7 +1437,7 @@
   window.__signalPerf = perf;
   function loop(now) {
     const t0 = performance.now();
-    board.frame(now);
+    if (!app.classList.contains('mode-menu')) board.frame(now);
     drawDragLayer(now);
     if (callout && performance.now() > callout.until) closeCallout();
     perf.renderMs += performance.now() - t0;
@@ -1116,7 +1454,6 @@
   };
 
   setSound(progress.sound !== false, false);
-  updateTitle();
   showScreen('title');
   fitBoard();
   requestAnimationFrame(loop);

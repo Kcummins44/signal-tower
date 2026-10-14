@@ -35,7 +35,6 @@
       this.lastTime = 0;
       this.time = 0;
       this.cssW = 0; this.cssH = 0; this.dpr = 1;
-      this.shadowPattern = null;
       this.ev = null;
       this.waves = [];
     }
@@ -132,7 +131,6 @@
       this.boardH = this.tile * this.grid.height;
       this.ox = Math.round((this.cssW - this.boardW) / 2);
       this.oy = Math.round((this.cssH - this.boardH) / 2);
-      this.makeShadowPattern();
       this.buildTerrain();
       this.setTowers(this.towers, { skip: this.skip });
     }
@@ -163,24 +161,6 @@
       const ctx = c.getContext('2d');
       ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       return [c, ctx];
-    }
-
-    makeShadowPattern() {
-      const size = Math.max(6, Math.round(this.tile * 0.16)) * this.dpr;
-      const c = document.createElement('canvas');
-      c.width = c.height = size;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = 'rgba(14, 20, 30, 0.42)';
-      ctx.fillRect(0, 0, size, size);
-      ctx.strokeStyle = 'rgba(8, 12, 20, 0.5)';
-      ctx.lineWidth = size * 0.28;
-      ctx.beginPath();
-      ctx.moveTo(-size, size * 2); ctx.lineTo(size * 2, -size);
-      ctx.moveTo(-size, size); ctx.lineTo(size, -size);
-      ctx.moveTo(0, size * 2); ctx.lineTo(size * 2, 0);
-      ctx.stroke();
-      this.shadowPattern = this.ctx.createPattern(c, 'repeat');
-      this.shadowPattern.setTransform(new DOMMatrix().scale(1 / this.dpr));
     }
 
     // ---------- cached layers ----------
@@ -221,7 +201,9 @@
       this.terrain = c;
     }
 
-    // Coverage tint, shadow zones and the placement preview.
+    // Coverage tint and the placement preview. Tiles a wall blocks look
+    // like plain ground; only a placement preview marks the tiles that
+    // tower would reach without the wall (faint dashed squares).
     buildOverlay() {
       if (!this.grid || !this.tile || !this.ev) return;
       const [c, ctx] = this.offscreen();
@@ -230,12 +212,7 @@
       ctx.clip();
       const quiet = new Set(this.grid.quiet.map(([x, y]) => key(x, y)));
       const covered = new Set();
-      const shadow = new Set();
-      const sources = this.liveReaches(ev);
-      for (const r of sources) {
-        r.covered.forEach(([x, y]) => covered.add(key(x, y)));
-        r.shadow.forEach(([x, y]) => shadow.add(key(x, y)));
-      }
+      for (const r of this.liveReaches(ev)) r.covered.forEach(([x, y]) => covered.add(key(x, y)));
       const fillTiles = (keys, style) => {
         ctx.fillStyle = style;
         for (const k of keys) {
@@ -245,7 +222,6 @@
       };
       fillTiles([...covered].filter((k) => !quiet.has(k)), 'rgba(127, 224, 208, 0.13)');
       fillTiles([...covered].filter((k) => quiet.has(k)), 'rgba(232, 106, 95, 0.18)');
-      fillTiles([...shadow].filter((k) => !covered.has(k)), this.shadowPattern);
 
       const pv = this.pv;
       if (pv && this.preview) {
@@ -256,7 +232,17 @@
         ctx.lineWidth = Math.max(1, s * 0.03);
         if (pv.live) {
           fillTiles(r.covered.map(([x, y]) => key(x, y)).filter((k) => !covered.has(k) && !quiet.has(k)), 'rgba(127, 224, 208, 0.16)');
-          fillTiles(r.shadow.map(([x, y]) => key(x, y)).filter((k) => !covered.has(k) && !shadow.has(k)), this.shadowPattern);
+          ctx.save();
+          ctx.strokeStyle = 'rgba(233, 237, 241, 0.22)';
+          ctx.lineWidth = Math.max(1, s * 0.025);
+          ctx.setLineDash([s * 0.06, s * 0.07]);
+          ctx.lineCap = 'butt';
+          for (const [x, y] of r.shadow) {
+            if (covered.has(key(x, y)) || L.tileAt(this.grid, x, y) === '#') continue;
+            A.roundRect(ctx, ox + (x + 0.12) * s, oy + (y + 0.12) * s, s * 0.76, s * 0.76, s * 0.12);
+            ctx.stroke();
+          }
+          ctx.restore();
           ctx.setLineDash([s * 0.12, s * 0.1]);
           ctx.strokeStyle = 'rgba(127, 224, 208, 0.55)';
         } else {

@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1364" height="984" viewBox="0 0 1364 984"><defs><filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="8"/></filter><radialGradient id="bgg" cx="0.5" cy="0" r="1"><stop offset="0" stop-color="#243140"/><stop offset="0.7" stop-color="#1b232d"/></radialGradient></defs><rect width="1364" height="984" fill="#11171e"/><g transform="translate(40 60)"><text x="0" y="-16" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="15" font-weight="700" fill="#9aa7b5" text-anchor="start" >Phone portrait 390 x 844</text><rect width="390" height="844" rx="28" fill="#1b232d" stroke="#3b4858" stroke-width="2"/><clipPath id="c4060"><rect width="390" height="844" rx="28"/></clipPath><g clip-path="url(#c4060)"><rect width="390" height="844" fill="url(#bgg)"/><rect x="330" y="56" width="44" height="44" rx="12" fill="#26313d"/><g transform="translate(341 67)" fill="#e9edf1"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="#e9edf1" stroke-width="2" stroke-linecap="round"/></g><svg x="23" y="104" width="344" height="236" viewBox="0 0 320 220"><defs>
+  <radialGradient id="hp-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#7fe0d0" stop-opacity="0.18"/><stop offset="1" stop-color="#7fe0d0" stop-opacity="0"/></radialGradient>
+  <linearGradient id="hp-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b232d" stop-opacity="0"/><stop offset="1" stop-color="#1b232d" stop-opacity="1"/></linearGradient>
+</defs>
+<circle cx="160" cy="70" r="120" fill="url(#hp-glow)"/>
+<circle class="star sa" cx="38" cy="28" r="1.2" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="84" cy="52" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="122" cy="20" r="1.4" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="214" cy="26" r="1.1" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="262" cy="48" r="1.3" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="292" cy="18" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="18" cy="74" r="0.9" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="300" cy="88" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<g fill="none" stroke="#7fe0d0" stroke-width="2"><circle cx="160" cy="58" r="26" opacity="0.7"/><circle cx="160" cy="58" r="52" opacity="0.4"/><circle cx="160" cy="58" r="80" opacity="0.16"/></g>
+<path d="M0 158 C50 128 110 132 150 150 C200 124 270 118 320 140 V220 H0 Z" fill="#3f5f48"/>
+<path d="M58 220 C88 116 232 116 262 220 Z" fill="#5f7d55"/>
+<path d="M96 220 C114 136 206 136 224 220 Z" fill="#6f8d61"/>
+<path d="M0 196 C70 182 120 186 160 196 C210 184 270 180 320 192 V220 H0 Z" fill="#55705a"/>
+<g transform="translate(28 172)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(292 160)">
+  <ellipse cx="2" cy="1" rx="9" ry="3.1" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-9" r="9" fill="#3f5f48"/>
+  <circle cx="-2" cy="-11" r="5.4" fill="#4c6f53"/>
+</g><g transform="translate(232 200)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(118 202)">
+  <ellipse cx="2" cy="1" rx="7" ry="2.4" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-7" r="7" fill="#3f5f48"/>
+  <circle cx="-2" cy="-9" r="4.2" fill="#4c6f53"/>
+</g>
+<g class="links" fill="none" stroke="#7fe0d0" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" opacity="0.55">
+  <path d="M160 64 L66 150"/><path d="M160 64 L262 144"/><path d="M160 64 L84 190"/>
+</g>
+<g class="h h1" transform="translate(66 162)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h2" transform="translate(262 156)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h3" transform="translate(84 204)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g>
+<g class="tower" transform="translate(0 2)">
+  <ellipse cx="163" cy="168" rx="24" ry="5" fill="rgba(12,18,26,0.3)"/>
+  <rect x="140" y="156" width="40" height="11" rx="4.5" fill="#a9b0ba"/>
+  <rect x="140" y="154" width="40" height="8" rx="4" fill="#d5d9df"/>
+  <path d="M147 156 L156.5 72 M173 156 L163.5 72" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M149 144 L170 128 M171 144 L150 128 M151.5 124 L167 110 M168.5 124 L153 110 M154 106 L165.5 94 M166 106 L154.5 94" stroke="#8d95a1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M160 72 V62" stroke="#e8ebef" stroke-width="2.5" stroke-linecap="round"/>
+  <circle class="beacon" cx="160" cy="58" r="5" fill="#7fe0d0"/>
+</g>
+<rect x="0" y="196" width="320" height="24" fill="url(#hp-fade)"/></svg><text x="195.0" y="380" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="12" font-weight="700" fill="#7fe0d0" text-anchor="middle" letter-spacing="2">A RADIO PUZZLE</text><text x="195.0" y="430" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="44" font-weight="800" text-anchor="middle" letter-spacing="-0.6"><tspan fill="#e9edf1">Signal </tspan><tspan fill="#7fe0d0">Tower</tspan></text><text x="195.0" y="462" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="16" font-weight="500" fill="#9aa7b5" text-anchor="middle" >Light up every house in town.</text><rect x="35.0" y="528" width="320" height="68" rx="18" fill="rgba(127,224,208,0.22)" filter="url(#blur)"/><rect x="35.0" y="522" width="320" height="68" rx="18" fill="#7fe0d0"/><text x="195.0" y="554.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="20" font-weight="800" fill="#12302c" text-anchor="middle" >Continue</text><text x="195.0" y="572.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="13" font-weight="600" fill="#12302c" text-anchor="middle" opacity="0.75">Level 12, Stone Maze</text><rect x="35.0" y="608" width="154" height="56" rx="16" fill="rgba(6,10,16,0.3)"/><rect x="35.0" y="606" width="154" height="56" rx="16" fill="#303c4a"/><text x="124.0" y="640.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e9edf1" text-anchor="middle" >Level map</text><g transform="translate(50.400000000000006 622.0)" fill="#e9edf1"><path d="M6.5 18.5c0-3.5 11-2.5 11-7S9 8 9 5.5" fill="none" stroke="#e9edf1" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 3.4"/><circle cx="6.5" cy="18.5" r="2.6"/><circle cx="17.5" cy="11.5" r="2.6"/><circle cx="9" cy="5" r="2.6"/></g><rect x="201.0" y="608" width="154" height="56" rx="16" fill="rgba(6,10,16,0.3)"/><rect x="201.0" y="606" width="154" height="56" rx="16" fill="#303c4a"/><text x="290.0" y="640.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e9edf1" text-anchor="middle" >Settings</text><g transform="translate(220.8 622.0)" fill="none" stroke="#e9edf1"><circle cx="12" cy="12" r="3.2" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke-width="2.2" stroke-linecap="round"/></g><path transform="translate(101.0 694.0) scale(0.6666666666666666)" d="M12 2.8l2.75 5.6 6.15.9-4.45 4.33 1.05 6.12L12 16.87l-5.5 2.9 1.05-6.13L3.1 9.3l6.15-.9z" fill="#ffd27a" stroke="#ffd27a" stroke-linejoin="round"/><text x="123.0" y="707" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ffd27a" text-anchor="start" >23 / 114</text><rect x="197.0" y="696" width="1" height="12" fill="#3b4858"/><text x="209.0" y="707" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="14" font-weight="600" fill="#9aa7b5" text-anchor="start" >12 of 38 levels</text><rect x="115.0" y="718" width="160" height="4" rx="2" fill="#3b4858"/><rect x="115.0" y="718" width="51" height="4" rx="2" fill="#ffd27a"/><text x="195.0" y="808" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="11" font-weight="600" fill="#5b6878" text-anchor="middle" >Iris mockup: start screen, returning player</text></g></g><g transform="translate(480 60)"><text x="0" y="-16" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="15" font-weight="700" fill="#9aa7b5" text-anchor="start" >Phone landscape 844 x 390</text><rect width="844" height="390" rx="28" fill="#1b232d" stroke="#3b4858" stroke-width="2"/><clipPath id="c48060"><rect width="844" height="390" rx="28"/></clipPath><g clip-path="url(#c48060)"><rect width="844" height="390" fill="url(#bgg)"/><svg x="44" y="62" width="380" height="261" viewBox="0 0 320 220"><defs>
+  <radialGradient id="hl-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#7fe0d0" stop-opacity="0.18"/><stop offset="1" stop-color="#7fe0d0" stop-opacity="0"/></radialGradient>
+  <linearGradient id="hl-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b232d" stop-opacity="0"/><stop offset="1" stop-color="#1b232d" stop-opacity="1"/></linearGradient>
+</defs>
+<circle cx="160" cy="70" r="120" fill="url(#hl-glow)"/>
+<circle class="star sa" cx="38" cy="28" r="1.2" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="84" cy="52" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="122" cy="20" r="1.4" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="214" cy="26" r="1.1" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="262" cy="48" r="1.3" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="292" cy="18" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="18" cy="74" r="0.9" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="300" cy="88" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<g fill="none" stroke="#7fe0d0" stroke-width="2"><circle cx="160" cy="58" r="26" opacity="0.7"/><circle cx="160" cy="58" r="52" opacity="0.4"/><circle cx="160" cy="58" r="80" opacity="0.16"/></g>
+<path d="M0 158 C50 128 110 132 150 150 C200 124 270 118 320 140 V220 H0 Z" fill="#3f5f48"/>
+<path d="M58 220 C88 116 232 116 262 220 Z" fill="#5f7d55"/>
+<path d="M96 220 C114 136 206 136 224 220 Z" fill="#6f8d61"/>
+<path d="M0 196 C70 182 120 186 160 196 C210 184 270 180 320 192 V220 H0 Z" fill="#55705a"/>
+<g transform="translate(28 172)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(292 160)">
+  <ellipse cx="2" cy="1" rx="9" ry="3.1" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-9" r="9" fill="#3f5f48"/>
+  <circle cx="-2" cy="-11" r="5.4" fill="#4c6f53"/>
+</g><g transform="translate(232 200)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(118 202)">
+  <ellipse cx="2" cy="1" rx="7" ry="2.4" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-7" r="7" fill="#3f5f48"/>
+  <circle cx="-2" cy="-9" r="4.2" fill="#4c6f53"/>
+</g>
+<g class="links" fill="none" stroke="#7fe0d0" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" opacity="0.55">
+  <path d="M160 64 L66 150"/><path d="M160 64 L262 144"/><path d="M160 64 L84 190"/>
+</g>
+<g class="h h1" transform="translate(66 162)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h2" transform="translate(262 156)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h3" transform="translate(84 204)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g>
+<g class="tower" transform="translate(0 2)">
+  <ellipse cx="163" cy="168" rx="24" ry="5" fill="rgba(12,18,26,0.3)"/>
+  <rect x="140" y="156" width="40" height="11" rx="4.5" fill="#a9b0ba"/>
+  <rect x="140" y="154" width="40" height="8" rx="4" fill="#d5d9df"/>
+  <path d="M147 156 L156.5 72 M173 156 L163.5 72" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M149 144 L170 128 M171 144 L150 128 M151.5 124 L167 110 M168.5 124 L153 110 M154 106 L165.5 94 M166 106 L154.5 94" stroke="#8d95a1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M160 72 V62" stroke="#e8ebef" stroke-width="2.5" stroke-linecap="round"/>
+  <circle class="beacon" cx="160" cy="58" r="5" fill="#7fe0d0"/>
+</g>
+<rect x="0" y="196" width="320" height="24" fill="url(#hl-fade)"/></svg><rect x="784" y="16" width="44" height="44" rx="12" fill="#26313d"/><g transform="translate(795 27)" fill="#e9edf1"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="#e9edf1" stroke-width="2" stroke-linecap="round"/></g><text x="620" y="88" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="11" font-weight="700" fill="#7fe0d0" text-anchor="middle" letter-spacing="2">A RADIO PUZZLE</text><text x="620" y="128" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="36" font-weight="800" text-anchor="middle" letter-spacing="-0.5"><tspan fill="#e9edf1">Signal </tspan><tspan fill="#7fe0d0">Tower</tspan></text><text x="620" y="154" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="14" font-weight="500" fill="#9aa7b5" text-anchor="middle" >Light up every house in town.</text><rect x="470" y="186" width="300" height="60" rx="18" fill="rgba(127,224,208,0.22)" filter="url(#blur)"/><rect x="470" y="180" width="300" height="60" rx="18" fill="#7fe0d0"/><text x="620.0" y="208.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="20" font-weight="800" fill="#12302c" text-anchor="middle" >Continue</text><text x="620.0" y="226.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="13" font-weight="600" fill="#12302c" text-anchor="middle" opacity="0.75">Level 12, Stone Maze</text><rect x="470" y="254" width="144" height="48" rx="14" fill="rgba(6,10,16,0.3)"/><rect x="470" y="252" width="144" height="48" rx="14" fill="#303c4a"/><text x="554.0" y="282.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e9edf1" text-anchor="middle" >Level map</text><g transform="translate(480.4 264.0)" fill="#e9edf1"><path d="M6.5 18.5c0-3.5 11-2.5 11-7S9 8 9 5.5" fill="none" stroke="#e9edf1" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 3.4"/><circle cx="6.5" cy="18.5" r="2.6"/><circle cx="17.5" cy="11.5" r="2.6"/><circle cx="9" cy="5" r="2.6"/></g><rect x="626" y="254" width="144" height="48" rx="14" fill="rgba(6,10,16,0.3)"/><rect x="626" y="252" width="144" height="48" rx="14" fill="#303c4a"/><text x="710.0" y="282.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e9edf1" text-anchor="middle" >Settings</text><g transform="translate(640.8 264.0)" fill="none" stroke="#e9edf1"><circle cx="12" cy="12" r="3.2" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke-width="2.2" stroke-linecap="round"/></g><path transform="translate(526.0 322.0) scale(0.6666666666666666)" d="M12 2.8l2.75 5.6 6.15.9-4.45 4.33 1.05 6.12L12 16.87l-5.5 2.9 1.05-6.13L3.1 9.3l6.15-.9z" fill="#ffd27a" stroke="#ffd27a" stroke-linejoin="round"/><text x="548" y="335" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ffd27a" text-anchor="start" >23 / 114</text><rect x="622" y="324" width="1" height="12" fill="#3b4858"/><text x="634" y="335" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="14" font-weight="600" fill="#9aa7b5" text-anchor="start" >12 of 38 levels</text></g></g><g transform="translate(480 520)"><text x="0" y="-16" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="15" font-weight="700" fill="#9aa7b5" text-anchor="start" >Desktop 1280 x 800 (shown at 66 percent)</text><rect width="844" height="384" rx="28" fill="#1b232d" stroke="#3b4858" stroke-width="2"/><clipPath id="c480520"><rect width="844" height="384" rx="28"/></clipPath><g clip-path="url(#c480520)"><rect width="844" height="384" fill="url(#bgg)"/><rect x="784" y="16" width="44" height="44" rx="12" fill="#26313d"/><g transform="translate(795 27)" fill="#e9edf1"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="#e9edf1" stroke-width="2" stroke-linecap="round"/></g><svg x="262" y="24" width="320" height="220" viewBox="0 0 320 220"><defs>
+  <radialGradient id="hd-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#7fe0d0" stop-opacity="0.18"/><stop offset="1" stop-color="#7fe0d0" stop-opacity="0"/></radialGradient>
+  <linearGradient id="hd-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b232d" stop-opacity="0"/><stop offset="1" stop-color="#1b232d" stop-opacity="1"/></linearGradient>
+</defs>
+<circle cx="160" cy="70" r="120" fill="url(#hd-glow)"/>
+<circle class="star sa" cx="38" cy="28" r="1.2" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="84" cy="52" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="122" cy="20" r="1.4" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="214" cy="26" r="1.1" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sb" cx="262" cy="48" r="1.3" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="292" cy="18" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sc" cx="18" cy="74" r="0.9" fill="#e9edf1" opacity="0.5"/>
+<circle class="star sa" cx="300" cy="88" r="1.0" fill="#e9edf1" opacity="0.5"/>
+<g fill="none" stroke="#7fe0d0" stroke-width="2"><circle cx="160" cy="58" r="26" opacity="0.7"/><circle cx="160" cy="58" r="52" opacity="0.4"/><circle cx="160" cy="58" r="80" opacity="0.16"/></g>
+<path d="M0 158 C50 128 110 132 150 150 C200 124 270 118 320 140 V220 H0 Z" fill="#3f5f48"/>
+<path d="M58 220 C88 116 232 116 262 220 Z" fill="#5f7d55"/>
+<path d="M96 220 C114 136 206 136 224 220 Z" fill="#6f8d61"/>
+<path d="M0 196 C70 182 120 186 160 196 C210 184 270 180 320 192 V220 H0 Z" fill="#55705a"/>
+<g transform="translate(28 172)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(292 160)">
+  <ellipse cx="2" cy="1" rx="9" ry="3.1" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-9" r="9" fill="#3f5f48"/>
+  <circle cx="-2" cy="-11" r="5.4" fill="#4c6f53"/>
+</g><g transform="translate(232 200)">
+  <ellipse cx="2" cy="1" rx="8" ry="2.8" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-8" r="8" fill="#3f5f48"/>
+  <circle cx="-2" cy="-10" r="4.8" fill="#4c6f53"/>
+</g><g transform="translate(118 202)">
+  <ellipse cx="2" cy="1" rx="7" ry="2.4" fill="rgba(12,18,26,0.28)"/>
+  <circle cx="0" cy="-7" r="7" fill="#3f5f48"/>
+  <circle cx="-2" cy="-9" r="4.2" fill="#4c6f53"/>
+</g>
+<g class="links" fill="none" stroke="#7fe0d0" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" opacity="0.55">
+  <path d="M160 64 L66 150"/><path d="M160 64 L262 144"/><path d="M160 64 L84 190"/>
+</g>
+<g class="h h1" transform="translate(66 162)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h2" transform="translate(262 156)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g><g class="h h3" transform="translate(84 204)">
+  <ellipse cx="2" cy="1" rx="16" ry="3.5" fill="rgba(12,18,26,0.28)"/>
+  <rect x="-12" y="-14" width="24" height="14" rx="1.5" fill="#e6dccb"/>
+  <rect x="-12" y="-3" width="24" height="3" fill="#c9bca6"/>
+  <path d="M-15 -13 L-10 -22 H10 L15 -13 Z" fill="#c47a5a"/>
+  <path d="M-15 -13 H15 L14 -11 H-14 Z" fill="#a5604a"/>
+  <rect x="5" y="-25" width="3" height="5" fill="#a5604a"/>
+  <rect x="-2" y="-8" width="4" height="8" rx="1" fill="#7a5a44"/>
+  <rect class="win" x="-9" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+  <rect class="win" x="4" y="-10" width="5" height="4" rx="0.8" fill="#ffd27a"/>
+</g>
+<g class="tower" transform="translate(0 2)">
+  <ellipse cx="163" cy="168" rx="24" ry="5" fill="rgba(12,18,26,0.3)"/>
+  <rect x="140" y="156" width="40" height="11" rx="4.5" fill="#a9b0ba"/>
+  <rect x="140" y="154" width="40" height="8" rx="4" fill="#d5d9df"/>
+  <path d="M147 156 L156.5 72 M173 156 L163.5 72" stroke="#e8ebef" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M149 144 L170 128 M171 144 L150 128 M151.5 124 L167 110 M168.5 124 L153 110 M154 106 L165.5 94 M166 106 L154.5 94" stroke="#8d95a1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M160 72 V62" stroke="#e8ebef" stroke-width="2.5" stroke-linecap="round"/>
+  <circle class="beacon" cx="160" cy="58" r="5" fill="#7fe0d0"/>
+</g>
+<rect x="0" y="196" width="320" height="24" fill="url(#hd-fade)"/></svg><text x="422" y="276" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="34" font-weight="800" text-anchor="middle"><tspan fill="#e9edf1">Signal </tspan><tspan fill="#7fe0d0">Tower</tspan></text><text x="422" y="298" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="12" font-weight="500" fill="#9aa7b5" text-anchor="middle" >Light up every house in town.</text><rect x="302" y="318" width="240" height="46" rx="13" fill="rgba(127,224,208,0.22)" filter="url(#blur)"/><rect x="302" y="312" width="240" height="46" rx="13" fill="#7fe0d0"/><text x="422.0" y="341.0" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="15" font-weight="700" fill="#12302c" text-anchor="middle" >Play</text><text x="422" y="374" font-family="ui-rounded, SF Pro Rounded, system-ui, sans-serif" font-size="10" font-weight="600" fill="#5b6878" text-anchor="middle" >Secondary row and progress strip continue below, same as phone portrait.</text></g></g></svg>

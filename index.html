@@ -24,6 +24,7 @@
       <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-map" viewBox="0 0 24 24"><path d="M6.5 18.5c0-3.5 11-2.5 11-7S9 8 9 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 3.4"/><circle cx="6.5" cy="18.5" r="2.6"/><circle cx="17.5" cy="11.5" r="2.6"/><circle cx="9" cy="5" r="2.6"/></symbol>
       <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
       <symbol id="i-tower" viewBox="0 0 24 24"><path d="M7 21L11 7M17 21L13 7M8.6 15.5h6.8M10 11h4M12 7V4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="3.5" r="2"/></symbol>
       <symbol id="i-house" viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 10.5V20h12v-9.5L12 5.5z"/></symbol>
@@ -75,40 +76,41 @@
     <div id="callout" class="callout" role="status" hidden><span></span></div>
 
     <!-- Title -->
-    <section id="screen-title" class="screen" hidden>
-      <div class="panel title-panel">
-        <svg class="logo" viewBox="0 0 120 120" aria-hidden="true">
-          <g class="logo-waves" fill="none" stroke="#7fe0d0" stroke-width="3">
-            <circle cx="60" cy="34" r="14"/><circle cx="60" cy="34" r="14"/><circle cx="60" cy="34" r="14"/>
-          </g>
-          <ellipse cx="62" cy="104" rx="26" ry="6" fill="rgba(0,0,0,0.25)"/>
-          <rect x="38" y="92" width="44" height="12" rx="5" fill="#a9b0ba"/>
-          <rect x="38" y="90" width="44" height="9" rx="4.5" fill="#d5d9df"/>
-          <path d="M46 92 L57 36 M74 92 L63 36" stroke="#e8ebef" stroke-width="4" stroke-linecap="round"/>
-          <path d="M48 80 L69 66 M72 80 L51 66 M51 64 L66 52 M69 64 L54 52" stroke="#8d95a1" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M60 36 V24" stroke="#e8ebef" stroke-width="3" stroke-linecap="round"/>
-          <circle class="logo-light" cx="60" cy="22" r="5" fill="#7fe0d0"/>
-        </svg>
-        <h1>Signal Tower</h1>
-        <p class="tagline">Place radio towers so every house gets signal.</p>
-        <div class="menu">
-          <button class="btn primary" id="title-play"><svg><use href="#i-play"/></svg><span id="title-play-label">Play</span></button>
-          <button class="btn" id="title-levels"><svg><use href="#i-grid"/></svg>Levels</button>
-          <button class="btn" id="title-settings"><svg><use href="#i-gear"/></svg>Settings</button>
+    <section id="screen-title" class="screen title-screen" hidden>
+      <button class="icon-btn title-sound" id="title-sound" aria-label="Mute sound"><svg><use href="#i-sound"/></svg></button>
+      <div class="title-col">
+        <!-- Iris's hero, loaded as-is. An <img> keeps its CSS animations
+             (and their reduced-motion rule) from leaking into the page. -->
+        <img class="title-hero" src="design/title-hero.svg" alt="" aria-hidden="true" width="320" height="220">
+        <div class="title-text">
+          <p class="title-eyebrow">A radio puzzle</p>
+          <h1 class="title-word">Signal <span class="accent">Tower</span></h1>
+          <p class="title-tagline">Light up every house in town.</p>
+          <button class="title-primary" id="title-play"><span id="title-play-label">Play</span><span class="sub" id="title-play-sub">Level 1, First Light</span></button>
+          <div class="title-secondary">
+            <button class="title-btn" id="title-levels"><svg><use href="#i-map"/></svg>Level map</button>
+            <button class="title-btn" id="title-settings"><svg><use href="#i-gear"/></svg>Settings</button>
+          </div>
+          <div class="title-progress" id="title-progress" role="img" hidden>
+            <div class="tp-row"><svg><use href="#i-star"/></svg><span class="tp-stars" id="title-stars">0 / 114</span><span class="tp-div"></span><span class="tp-levels" id="title-levels-done">0 of 38 levels</span></div>
+            <div class="tp-meter"><div id="title-meter"></div></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Level select -->
-    <section id="screen-levels" class="screen" hidden>
-      <div class="panel levels-panel">
-        <div class="panel-head">
-          <button class="icon-btn" id="levels-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
-          <h2>Levels</h2>
-          <div class="star-total"><svg><use href="#i-star"/></svg><span id="star-total">0</span></div>
-        </div>
-        <div id="level-grid" class="level-grid"></div>
+    <!-- Level map -->
+    <section id="screen-levels" class="screen map-screen" hidden>
+      <header class="map-bar" id="map-bar">
+        <button class="icon-btn" id="levels-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
+        <h2>Level map</h2>
+        <div class="star-pill"><svg><use href="#i-star"/></svg><span id="star-total">0</span></div>
+      </header>
+      <div class="map-scroll" id="map-scroll"><div class="map-track" id="map-track"></div></div>
+      <div class="map-cta" id="map-cta">
+        <button class="btn primary" id="map-play"><svg><use href="#i-play"/></svg><span id="map-play-label">Play level 1</span></button>
       </div>
+      <div id="map-toast" class="toast map-toast" role="status" hidden></div>
     </section>
 
     <!-- Settings -->
@@ -138,7 +140,7 @@
         <div class="menu">
           <button class="btn primary" id="pause-resume"><svg><use href="#i-play"/></svg>Resume</button>
           <button class="btn" id="pause-restart"><svg><use href="#i-reset"/></svg>Restart level</button>
-          <button class="btn" id="pause-levels"><svg><use href="#i-grid"/></svg>Level select</button>
+          <button class="btn" id="pause-levels"><svg><use href="#i-map"/></svg>Level map</button>
           <label class="setting inline">
             <span>Sound</span>
             <input type="checkbox" id="pause-sound" class="switch">
@@ -159,7 +161,7 @@
         </div>
         <p id="win-detail" class="win-detail"></p>
         <div class="menu row">
-          <button class="btn" id="win-levels" aria-label="Level select"><svg><use href="#i-grid"/></svg></button>
+          <button class="btn" id="win-levels" aria-label="Level map"><svg><use href="#i-map"/></svg></button>
           <button class="btn" id="win-replay" aria-label="Replay"><svg><use href="#i-reset"/></svg></button>
           <button class="btn primary grow" id="win-next">Next level<svg><use href="#i-next"/></svg></button>
         </div>

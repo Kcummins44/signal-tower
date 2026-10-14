@@ -84,10 +84,17 @@ async function playLevel(page, sol, useDrag = true) {
   // ---------- Desktop: whole game with the mouse ----------
   const { page: d } = await open(browser, 'desktop', { viewport: { width: 1280, height: 800 } });
   const N = await d.evaluate(() => LEVELS.length);
+  check(await d.locator('#title-progress').isHidden() && (await d.textContent('#title-play-label')) === 'Play' && (await d.textContent('#title-play-sub')) === 'Level 1, First Light',
+    'fresh save: title says Play, Level 1, First Light, with no progress strip');
+  await d.screenshot({ path: `${OUT}/title-fresh-desktop.png` });
   await d.click('#title-levels');
-  check(await d.locator('.level-card').nth(1).isDisabled(), 'fresh save: level 2 is locked');
-  check((await d.locator('.chapter-head').count()) === 7, `level select shows 7 chapter headers (${await d.locator('.chapter-head').count()})`);
-  check((await d.locator('.chapter-head.locked').count()) === 6, 'fresh save: chapters 2 to 7 are locked');
+  await d.waitForTimeout(300);
+  check(await d.locator('.map-node[data-level="1"].locked').count() === 1 && await d.locator('.map-node[data-level="0"].current').count() === 1, 'fresh save: level 1 is current and level 2 locked on the map');
+  check((await d.locator('.map-banner').count()) === 7, `level map shows 7 chapter banners (${await d.locator('.map-banner').count()})`);
+  check((await d.locator('.map-banner.locked').count()) === 6, 'fresh save: chapters 2 to 7 are locked');
+  await d.click('.map-node[data-level="1"]', { force: true }); // aria-disabled, still tappable
+  await d.waitForTimeout(150);
+  check(!(await d.locator('#screen-levels').isHidden()) && (await d.textContent('#map-toast')) === 'Finish level 1 first.', 'tapping a locked node stays on the map and says "Finish level 1 first."');
   await d.screenshot({ path: `${OUT}/levels-fresh.png` });
   await d.click('#levels-back');
   await d.click('#title-play');
@@ -206,11 +213,12 @@ async function playLevel(page, sol, useDrag = true) {
     if (i < N - 1) { await d.click('#win-next'); await d.waitForTimeout(250); }
   }
   check(await d.locator('#win-next').isHidden(), 'last level hides "Next level"');
-  await d.click('#win-levels'); await d.waitForTimeout(300);
+  await d.click('#win-levels'); await d.waitForTimeout(3500);
   check((await d.textContent('#star-total')) === `${N * 3} / ${N * 3}`, `star total reads ${await d.textContent('#star-total')}`);
-  check((await d.locator('.level-card:disabled').count()) === 0 && (await d.locator('.chapter-head.locked').count()) === 0, 'all levels and chapters unlocked');
+  check((await d.locator('.map-node.locked').count()) === 0 && (await d.locator('.map-banner.locked').count()) === 0 && (await d.locator('.map-node.perfect').count()) === N, 'all levels and chapters unlocked, every node shows 3 stars');
+  check(await d.locator('#map-cta').isHidden(), 'all beaten: the map hides the Play button');
   await d.screenshot({ path: `${OUT}/levels-complete.png` });
-  await d.evaluate(() => document.querySelector('.levels-panel').parentElement.scrollTo(0, 1e5));
+  await d.evaluate(() => document.getElementById('map-scroll').scrollTo(0, 0));
   await d.waitForTimeout(150);
   await d.screenshot({ path: `${OUT}/levels-complete-bottom.png` });
 
@@ -222,14 +230,22 @@ async function playLevel(page, sol, useDrag = true) {
   const saved = await d.evaluate(() => JSON.parse(localStorage.getItem('signal-tower-v2')));
   check(Object.values(saved.stars).filter((v) => v === 3).length === N && saved.sound === false, 'progress and sound setting persist after reload');
   check((await d.getAttribute('#mute-btn use', 'href')) === '#i-mute', 'mute icon shows muted state');
-  check((await d.textContent('#title-play-label')) === 'Play', 'all done, title says Play: ' + `title button: "${await d.textContent('#title-play-label')}"`);
+  check((await d.textContent('#title-play-label')) === 'Play again', 'all done, title says Play again: ' + `title button: "${await d.textContent('#title-play-label')}"`);
   // Old saves (15 levels, no "seen" field) still load.
   await d.evaluate(() => {
     const stars = {}; for (let i = 0; i < 15; i++) stars[i] = 3;
     localStorage.setItem('signal-tower-v2', JSON.stringify({ stars, best: {}, sound: false }));
   });
   await d.reload({ waitUntil: 'domcontentloaded' }); await d.waitForFunction(() => window.__signalTest); await d.waitForTimeout(300);
-  check((await d.textContent('#title-play-label')) === 'Continue: level 16', `an old 15-level save continues at level 16 ("${await d.textContent('#title-play-label')}")`);
+  const sub16 = await d.textContent('#title-play-sub');
+  check((await d.textContent('#title-play-label')) === 'Continue' && sub16.startsWith('Level 16, '), `an old 15-level save continues at level 16 ("${sub16}")`);
+  await d.screenshot({ path: `${OUT}/title-mid-desktop.png` });
+  // The old save has no road counter: opening the map must not replay the road.
+  await d.click('#title-levels'); await d.waitForTimeout(500);
+  const oldMap = await d.evaluate(() => ({ packet: !!document.querySelector('.map-packet'), cur: document.querySelector('.map-node.current')?.dataset.level, road: JSON.parse(localStorage.getItem('signal-tower-v2')).road }));
+  check(!oldMap.packet && oldMap.cur === '15' && oldMap.road === 15, `an old save shows the map with no road animation (${JSON.stringify(oldMap)})`);
+  await d.screenshot({ path: `${OUT}/map-mid-desktop.png` });
+  await d.click('#levels-back');
   // Sound on: playing every effect must not throw.
   await d.click('#title-settings'); await d.click('#sound-toggle');
   const soundOk = await d.evaluate(() => {
@@ -537,6 +553,62 @@ async function playLevel(page, sol, useDrag = true) {
     }
   }
 
+  // Level map road: a first-time clear draws the road to the next level the
+  // next time the map opens, once. Crossing into a new chapter opens its
+  // banner. A tap skips. Blocked tiles look like plain ground at rest.
+  {
+    const { page: q, ctx: qctx } = await open(browser, 'map-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const solve = async (i) => {
+      await q.evaluate((i) => { const g = window.__signalTest; g.startLevel(i); for (const t of g.state.level.solutions[0]) { g.selectType(t.length > 2 ? 'dish' : 'mast'); g.act(t[0], t[1]); for (let f = 0; f < (t[2] || 0); f++) g.act(t[0], t[1]); } }, i);
+      await q.waitForSelector('#screen-win:not([hidden])');
+    };
+    const mapInfo = () => q.evaluate(() => ({ lines: document.querySelectorAll('.map-road .travelled .line').length, packet: !!document.querySelector('.map-packet'), cur: document.querySelector('.map-node.current')?.dataset.level, ch2: !document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), road: JSON.parse(localStorage.getItem('signal-tower-v2')).road }));
+    await q.screenshot({ path: `${OUT}/title-fresh-phone.png` });
+    await solve(0);
+    await q.click('#win-levels'); await q.waitForTimeout(700);
+    let mi = await mapInfo();
+    check(mi.packet && mi.lines === 1 && mi.road === 1, `first clear: the road draws from level 1 to 2 when the map opens (${JSON.stringify(mi)})`);
+    await q.screenshot({ path: `${OUT}/map-road-anim-phone.png` });
+    await q.waitForTimeout(1300);
+    mi = await mapInfo();
+    check(!mi.packet && mi.cur === '1', `after the animation level 2 is current (${JSON.stringify(mi)})`);
+    await q.click('#levels-back'); await q.click('#title-levels'); await q.waitForTimeout(600);
+    mi = await mapInfo();
+    check(!mi.packet && mi.lines === 1, `reopening the map does not replay the road (${JSON.stringify(mi)})`);
+    for (let i = 1; i < 14; i++) await solve(i);
+    await q.click('#win-levels'); await q.waitForTimeout(3600);
+    await solve(14);
+    await q.click('#win-levels'); await q.waitForTimeout(1000);
+    mi = await mapInfo();
+    check(mi.packet === false || mi.ch2, `beating level 15 opens chapter 2 as the road passes (${JSON.stringify(mi)})`);
+    await q.screenshot({ path: `${OUT}/map-chapter-anim-phone.png` });
+    await q.waitForTimeout(1200);
+    mi = await mapInfo();
+    check(mi.ch2 && mi.cur === '15' && mi.lines === 15, `chapter 2 open and level 16 current after the animation (${JSON.stringify(mi)})`);
+    await q.screenshot({ path: `${OUT}/map-mid-phone.png` });
+    await solve(15);
+    await q.click('#win-levels'); await q.waitForTimeout(400);
+    await q.touchscreen.tap(195, 420); await q.waitForTimeout(150);
+    mi = await mapInfo();
+    const onMap = await q.evaluate(() => !document.getElementById('screen-levels').hidden);
+    check(!mi.packet && mi.cur === '16' && onMap, `a tap skips the road animation and stays on the map (${JSON.stringify(mi)})`);
+    await q.click('#levels-back'); await q.waitForTimeout(300);
+    await q.screenshot({ path: `${OUT}/title-mid-phone.png` });
+    // Blocked tiles: no dark fill at rest. Sample the board pixels of every
+    // tile a wall blocks next to a placed tower on level 2.
+    await q.evaluate(() => { const g = window.__signalTest; g.startLevel(1); g.act(2, 0); });
+    await q.waitForTimeout(500);
+    const dark = await q.evaluate(() => {
+      const g = window.__signalTest, b = g.board, ev = window.SignalLogic.evaluate(g.state.grid, g.state.towers);
+      const ctx = document.getElementById('board').getContext('2d'), dpr = b.dpr;
+      const lum = (x, y) => { const px = ctx.getImageData(Math.round((b.ox + (x + 0.5) * b.tile) * dpr), Math.round((b.oy + (y + 0.2) * b.tile) * dpr), 1, 1).data; return 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2]; };
+      return ev.reach[0].shadow.map(([x, y]) => lum(x, y)).filter((v) => v < 60).length;
+    });
+    check(dark === 0, `wall-blocked tiles are plain ground at rest, not dark (${dark} dark)`);
+    await q.screenshot({ path: `${OUT}/walls-phone.png` });
+    await qctx.close();
+  }
+
   // Regression: a resize mid-drag retargets the drop to the tile under the pointer.
   {
     const { page: r } = await open(browser, 'resize', { viewport: { width: 1280, height: 800 } });
@@ -563,6 +635,7 @@ async function playLevel(page, sol, useDrag = true) {
     await c.reload({ waitUntil: 'domcontentloaded' });
     const ok = await c.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5, null, { timeout: 5000 }).then(() => true).catch(() => false);
     await c.click('#title-levels').catch(() => {});
+    await c.waitForTimeout(100);
     const total = ok ? await c.textContent('#star-total') : 'none';
     const expectStars = bad.includes('"2":2') ? 2 : 0;
     check(ok && errors.length === before && total === `${expectStars} / ${N * 3}`, `damaged save ${bad} loads safely (stars ${total})`);
