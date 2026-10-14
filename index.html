@@ -8,10 +8,12 @@
   <title>Signal Tower</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2326313d'/%3E%3Cpath d='M10 27 L15 9 M22 27 L17 9 M12 21 H20 M13.5 15 H18.5' stroke='%23e8ebef' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='7' r='2.5' fill='%237fe0d0'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/story.css">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
       <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></symbol>
       <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></symbol>
       <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3M5.4 7.2A8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -79,9 +81,9 @@
     <section id="screen-title" class="screen title-screen" hidden>
       <button class="icon-btn title-sound" id="title-sound" aria-label="Mute sound"><svg><use href="#i-sound"/></svg></button>
       <div class="title-col">
-        <!-- Iris's hero, loaded as-is. An <img> keeps its CSS animations
-             (and their reduced-motion rule) from leaking into the page. -->
-        <img class="title-hero" src="design/title-hero.svg" alt="" aria-hidden="true" width="320" height="220">
+        <!-- Iris's town hero (design/town-hero.svg), drawn by js/story-ui.js with
+             one landmark lit per connected chapter. -->
+        <div class="title-hero" id="title-hero" aria-hidden="true"></div>
         <div class="title-text">
           <p class="title-eyebrow">A radio puzzle</p>
           <h1 class="title-word">Signal <span class="accent">Tower</span></h1>
@@ -104,6 +106,7 @@
       <header class="map-bar" id="map-bar">
         <button class="icon-btn" id="levels-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
         <h2>Level map</h2>
+        <button class="icon-btn" id="map-story" aria-label="Story log"><svg><use href="#i-book"/></svg></button>
         <div class="star-pill"><svg><use href="#i-star"/></svg><span id="star-total">0</span></div>
       </header>
       <div class="map-scroll" id="map-scroll"><div class="map-track" id="map-track"></div></div>
@@ -125,11 +128,36 @@
           <span>Sound effects</span>
           <input type="checkbox" id="sound-toggle" class="switch">
         </label>
+        <label class="setting">
+          <span>Story scenes</span>
+          <input type="checkbox" id="story-toggle" class="switch">
+        </label>
+        <label class="setting story-settings">
+          <span>Text speed</span>
+          <select id="story-speed">
+            <option value="normal">Normal</option>
+            <option value="fast">Fast</option>
+            <option value="instant">Instant</option>
+          </select>
+        </label>
         <div class="setting">
           <span>Progress</span>
           <button class="btn small danger" id="reset-progress">Reset progress</button>
         </div>
         <p class="fine">Progress is saved in this browser.</p>
+      </div>
+    </section>
+
+    <!-- Story log -->
+    <section id="screen-story" class="screen" hidden>
+      <div class="panel story-panel">
+        <div class="panel-head">
+          <button class="icon-btn" id="story-back" aria-label="Back"><svg><use href="#i-back"/></svg></button>
+          <h2 id="story-head">Story</h2>
+          <span></span>
+        </div>
+        <div class="story-list" id="story-list"></div>
+        <div class="story-transcript" id="story-transcript" hidden></div>
       </div>
     </section>
 
@@ -141,6 +169,7 @@
           <button class="btn primary" id="pause-resume"><svg><use href="#i-play"/></svg>Resume</button>
           <button class="btn" id="pause-restart"><svg><use href="#i-reset"/></svg>Restart level</button>
           <button class="btn" id="pause-levels"><svg><use href="#i-map"/></svg>Level map</button>
+          <button class="btn" id="pause-story"><svg><use href="#i-book"/></svg>Story</button>
           <label class="setting inline">
             <span>Sound</span>
             <input type="checkbox" id="pause-sound" class="switch">
@@ -174,6 +203,8 @@
   <script src="js/art.js"></script>
   <script src="js/board.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/story.js"></script>
+  <script src="js/story-ui.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

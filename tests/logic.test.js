@@ -119,5 +119,36 @@ const covers = (g, t, x, y) => L.towerReach(g, t[0], t[1], t[2]).set.has(x + ','
   check(r.min !== null && r.solutions.every((s) => L.isSolved(g, s)), `mixed: every solver solution wins (min ${r.min})`);
 }
 
+// ---------- Story data (Iris's checks, design/story-spec.md section 6) ----------
+{
+  const fs = require('fs');
+  const path = require('path');
+  const { STORY, STORY_ART } = require('../js/story.js');
+  const src = JSON.parse(fs.readFileSync(path.join(__dirname, '../design/story-data.json'), 'utf8'));
+  check(JSON.stringify(STORY) === JSON.stringify(src), 'story: js/story.js carries design/story-data.json unchanged');
+  const LEVELS = new Function(fs.readFileSync(path.join(__dirname, '../js/levels.js'), 'utf8') + '; return LEVELS;')();
+  const chapters = ['basics', 'quiet', 'busy', 'dish', 'relay', 'panel', 'mixed'];
+  const lines = STORY.scenes.flatMap((s) => s.lines);
+  check(STORY.scenes.length === 19 && lines.length === 81, `story: 19 scenes and 81 lines (${STORY.scenes.length}, ${lines.length})`);
+  check(lines.every((l) => l.text.length <= 90), 'story: every line is 90 characters or fewer');
+  const levelLines = Object.entries(STORY.levelLines);
+  check(levelLines.length === 38 && levelLines.every(([k, v]) => Number(k) >= 1 && Number(k) <= 38 && v.length <= 60), 'story: 38 level lines, each 60 characters or fewer');
+  check(lines.every((l) => STORY.speakers[l.speaker]), 'story: every speaker exists');
+  check(lines.every((l) => !l.mood || ['neutral', 'happy', 'worried'].includes(l.mood)), 'story: every mood is valid');
+  const types = ['prologue', 'chapterStart', 'chapterEnd', 'levelStart', 'levelWin', 'epilogue'];
+  check(STORY.scenes.every((s) => types.includes(s.trigger.type) && (!s.trigger.chapter || chapters.includes(s.trigger.chapter)) &&
+    (s.trigger.level === undefined || (s.trigger.level >= 1 && s.trigger.level <= LEVELS.length)) && ['town', 'board', 'map'].includes(s.backdrop)), 'story: every trigger, chapter, level and backdrop is valid');
+  check(chapters.every((c) => ['chapterStart', 'chapterEnd'].every((t) => STORY.scenes.filter((s) => s.trigger.type === t && s.trigger.chapter === c).length === 1)),
+    'story: every chapter has one opening and one closing scene');
+  const ids = [...STORY.scenes.map((s) => s.id), ...lines.map((l) => l.id)];
+  check(new Set(ids).size === ids.length, 'story: scene and line ids are unique');
+  check(STORY.scenes.every((s) => s.lines.every((l, i) => l.id === `${s.id}.${i + 1}`)), 'story: line ids follow <scene>.<n>');
+  const texts = [...lines.map((l) => l.text), ...Object.values(STORY.levelLines), ...STORY.scenes.map((s) => s.title), ...STORY.town.map((t) => t.caption)];
+  check(texts.every((t) => /^[\x20-\x7e]*$/.test(t)), 'story: all text is printable ASCII (no emojis or smart quotes)');
+  check(LEVELS[29].name === 'Pass It On' && STORY.renames['30'].to === LEVELS[29].name, `story: level 30 is renamed "Pass It On" (${LEVELS[29].name})`);
+  check(Object.keys(STORY_ART.portraits).length === 4 && Object.values(STORY_ART.portraits).every((p) => p.neutral && p.happy && p.worried), 'story: four portraits, three moods each');
+  check(chapters.every((c) => STORY_ART.town.includes(`data-chapter="${c}"`)), 'story: the town art has a layer for every chapter');
+}
+
 console.log(failures ? `${failures} FAILED` : 'ALL LOGIC TESTS PASSED');
 process.exit(failures ? 1 : 0);

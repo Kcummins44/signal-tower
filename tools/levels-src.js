@@ -453,7 +453,7 @@ module.exports = [
     ],
   },
   {
-    name: 'Chain Gang',
+    name: 'Pass It On',
     chapter: 'relay',
     hint: 'Hills make good stepping stones.',
     radius: 2,

@@ -41,6 +41,7 @@
 
   const sfx = {
     click() { tone({ freq: 900, type: 'triangle', dur: 0.05, vol: 0.12 }); },
+    line() { tone({ freq: 660, type: 'sine', dur: 0.04, vol: 0.06 }); }, // story: next dialogue line
     place() {
       tone({ freq: 320, to: 760, type: 'triangle', dur: 0.14, vol: 0.28 });
       tone({ freq: 1520, type: 'sine', start: 0.08, dur: 0.18, vol: 0.08 });

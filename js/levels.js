@@ -841,7 +841,7 @@ const LEVELS = [
   ]
  },
  {
-  "name": "Chain Gang",
+  "name": "Pass It On",
   "hint": "Hills make good stepping stones.",
   "radius": 2,
   "towers": 4,

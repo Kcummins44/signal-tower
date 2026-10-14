@@ -33,9 +33,45 @@
   const FACING_WORDS = ['north', 'east', 'south', 'west'];
 
   // ---------- Saved progress ----------
+  const STORY = window.STORY;
+  const SCENE_IDS = new Set(STORY.scenes.map((sc) => sc.id));
+  const STORY_CHAPTERS = STORY.town.map((t) => t.chapter);
+  const SPEEDS = ['normal', 'fast', 'instant'];
+  // Test hook: the automated tests that are not about the story start with
+  // scenes off (window.__signalStoryOff is set before the page loads).
+  const storyDefaultOn = () => !window.__signalStoryOff;
   const progress = load();
+  // The story part of the save. A save without one (anyone who played
+  // before the story) is filled in silently from their progress: every
+  // scene they are past counts as seen, and their town is lit. They get a
+  // one-time "story so far" offer on the map (offered: false).
+  function loadStory(data, stars) {
+    const levelsOf = (c) => LEVELS.map((lv, i) => (chapterOf(lv) === c ? i : -1)).filter((i) => i >= 0);
+    const s = data && data.story;
+    if (!s || typeof s !== 'object' || Array.isArray(s)) {
+      const beaten = (i) => !!stars[i];
+      const any = Object.keys(stars).length > 0;
+      const seen = {};
+      for (const sc of STORY.scenes) {
+        const t = sc.trigger;
+        const done = t.type === 'prologue' ? any
+          : t.type === 'chapterStart' ? beaten(levelsOf(t.chapter)[0])
+          : t.type === 'chapterEnd' ? beaten(levelsOf(t.chapter).slice(-1)[0])
+          : t.type === 'levelStart' ? beaten(t.level - 1)
+          : t.type === 'epilogue' ? beaten(LEVELS.length - 1) : false;
+        if (done) seen[sc.id] = true;
+      }
+      const townShown = STORY_CHAPTERS.filter((c) => beaten(levelsOf(c).slice(-1)[0]));
+      // Nothing to catch up on for a save with nothing beaten.
+      return { seen, townShown, offered: !any, on: storyDefaultOn(), speed: 'normal' };
+    }
+    const seen = {};
+    if (s.seen && typeof s.seen === 'object' && !Array.isArray(s.seen)) for (const k of Object.keys(s.seen)) if (s.seen[k] === true && SCENE_IDS.has(k)) seen[k] = true;
+    const townShown = Array.isArray(s.townShown) ? [...new Set(s.townShown.filter((c) => STORY_CHAPTERS.includes(c)))] : [];
+    return { seen, townShown, offered: s.offered === true, on: s.on !== false, speed: SPEEDS.includes(s.speed) ? s.speed : 'normal' };
+  }
   function load() {
-    const fallback = { stars: {}, best: {}, sound: true, seen: {}, road: 0 };
+    const fallback = { stars: {}, best: {}, sound: true, seen: {}, road: 0, story: loadStory(null, {}) };
     // Keep only well-formed fields, so a damaged save can never break the game.
     const numbers = (o, ok) => {
       const out = {};
@@ -64,6 +100,7 @@
         sound: data.sound !== false,
         seen,
         road,
+        story: loadStory(data, stars),
       };
     } catch { return fallback; }
   }
@@ -80,8 +117,184 @@
   // ---------- State ----------
   let state = null;   // current level being played
   let screen = null;  // name of the visible overlay screen, or null in game
-  const screens = ['title', 'levels', 'settings', 'pause', 'win'];
+  const screens = ['title', 'levels', 'settings', 'pause', 'win', 'story'];
   let sessionDishSeen = false;
+
+  // ---------- Story ("The Keeper of Wren Hollow", Iris's design/story-spec.md) ----------
+  // When scenes play. js/story-ui.js shows them; js/story.js holds the text.
+  const storyOn = () => progress.story.on;
+  const levelsOfChapter = (id) => LEVELS.map((lv, i) => (chapterOf(lv) === id ? i : -1)).filter((i) => i >= 0);
+  const chapterDone = (id) => starsFor(levelsOfChapter(id).slice(-1)[0]) > 0;
+  const sceneWhere = (pred) => STORY.scenes.find((sc) => pred(sc.trigger));
+  const startScene = (id) => sceneWhere((t) => t.type === 'chapterStart' && t.chapter === id);
+  const endScene = (id) => sceneWhere((t) => t.type === 'chapterEnd' && t.chapter === id);
+  const EPILOGUE = sceneWhere((t) => t.type === 'epilogue').id;
+  const PROLOGUE = sceneWhere((t) => t.type === 'prologue').id;
+  // Town landmarks lit: chapters whose closing scene has played (with scenes
+  // off, every finished chapter).
+  const townOn = () => STORY_CHAPTERS.filter((c) => progress.story.seen[endScene(c).id] || (!storyOn() && chapterDone(c)));
+  function markSeen(id) { if (!progress.story.seen[id]) { progress.story.seen[id] = true; save(); } }
+  // Tiles (or the tray chip) a line talks about, in window coordinates.
+  function focusRects(f) {
+    if (!state) return [];
+    if (f.startsWith('chip:')) {
+      const c = chipEl(f.slice(5) === 'dish' ? 'dish' : 'mast');
+      if (!c) return [];
+      const r = c.getBoundingClientRect();
+      return [{ x: r.left, y: r.top, w: r.width, h: r.height, chip: true }];
+    }
+    const chars = new Set(f.split('')), r = canvas.getBoundingClientRect(), out = [];
+    state.grid.rows.forEach((row, y) => row.forEach((t, x) => {
+      if (chars.has(t)) out.push({ x: r.left + board.ox + x * board.tile, y: r.top + board.oy + y * board.tile, w: board.tile, h: board.tile });
+    }));
+    return out;
+  }
+  const Story = window.SignalStory.create({
+    reducedMotion, speed: () => progress.story.speed, sound: (n) => Audio.play(n), townState: townOn, markSeen, focusRects,
+    onOpen() { cancelDrag(true); closeCallout(); $('toast').hidden = true; if (state) { hoverTile = null; board.setPreview(null); } },
+    // A tap that closes a scene must not also land on the board under it.
+    onClose() { screenChangedAt = performance.now(); },
+  });
+  // Plays scenes when the story is on; with it off they only count as seen.
+  function playScenes(ids, then, opts = {}) {
+    if (!storyOn()) { ids.forEach(markSeen); if (then) then(); return; }
+    Story.play(ids, { ...opts, onDone: then });
+  }
+  // The scene for entering a level for the first time: its chapter's opening
+  // (first level) or a mid-chapter moment (levels 9, 30, 37). One scene per
+  // moment: if two wanted the same one, the later plays and both count as seen.
+  function introScenes(index) {
+    if (starsFor(index) > 0) return [];
+    const lv = LEVELS[index];
+    const ids = STORY.scenes.filter((sc) => {
+      const t = sc.trigger;
+      return (t.type === 'chapterStart' && t.chapter === chapterOf(lv) && levelsOfChapter(t.chapter)[0] === index) ||
+        (t.type === 'levelStart' && t.level === index + 1);
+    }).map((sc) => sc.id).filter((id) => !progress.story.seen[id]);
+    ids.slice(0, -1).forEach(markSeen);
+    return ids.slice(-1);
+  }
+  let lastFirstWin = null; // level index of the latest first-time win, for the map's postcard
+  const levelLine = (i) => STORY.levelLines[String(i + 1)];
+  function showPostcard(i, ms, onGone) {
+    Story.postcard({ container: $('screen-levels'), level: i + 1, name: LEVELS[i].name, text: levelLine(i), ms, onGone });
+    // The postcard never hides the next circle: scroll the circle above it
+    // (measured once the postcard has risen into place).
+    setTimeout(() => {
+      const pc = $('screen-levels').querySelector('.postcard'), node = mapNodeEl(Math.min(i + 1, LEVELS.length - 1));
+      if (!pc || !node) return;
+      const over = node.getBoundingClientRect().bottom + 12 - pc.getBoundingClientRect().top;
+      if (over > 0) { const sc = $('map-scroll'); sc.scrollTo({ top: sc.scrollTop + over, behavior: reducedMotion() ? 'auto' : 'smooth' }); }
+    }, reducedMotion() ? 0 : 240);
+  }
+  function townCard(c, next) {
+    const t = STORY.town.find((x) => x.chapter === c);
+    Story.storyCard({ label: t.caption, eyebrow: 'Wren Hollow grows', town: { on: townOn(), reveal: reducedMotion() ? null : c }, title: t.caption, body: `${t.chapterName} is connected.`, tap: 1200, onDone: next });
+  }
+  function endingCard(next) {
+    const title = 'Wren Hollow is on air.';
+    Story.storyCard({
+      label: title, title, body: `All ${LEVELS.length} levels connected.`, row: true, escape: 1,
+      buttons: [{ label: 'Story', run: () => { openStoryLog('levels'); next(); } }, { label: 'Level map', primary: true, run: next }],
+    });
+  }
+  // Runs steps (fn(next)) one after another while the map is open.
+  function chain(steps, done) {
+    const go = () => {
+      if (screen !== 'levels') return;
+      const st = steps.shift();
+      if (st) st(go); else if (done) done();
+    };
+    go();
+  }
+  // A chapter's close on the map: postcard (2.5s), closing scene, town card,
+  // and after chapter 7 the epilogue and the ending card.
+  function chapterClose(c, pcLevel, done) {
+    const steps = [];
+    if (pcLevel !== null) steps.push((next) => showPostcard(pcLevel, 2500, next));
+    steps.push((next) => Story.play([endScene(c).id], { backdrop: 'map', onDone: next }));
+    steps.push((next) => townCard(c, next));
+    if (c === STORY_CHAPTERS[STORY_CHAPTERS.length - 1]) {
+      if (!progress.story.seen[EPILOGUE]) steps.push((next) => Story.play([EPILOGUE], { onDone: next }));
+      steps.push((next) => endingCard(next));
+    }
+    chain(steps, done);
+  }
+  // The one-time offer for players who had progress before the story.
+  function catchUp(done) {
+    const offered = () => { progress.story.offered = true; save(); };
+    const ids = [PROLOGUE, ...STORY_CHAPTERS.filter((c) => progress.story.seen[endScene(c).id]).map((c) => endScene(c).id)];
+    Story.storyCard({
+      label: 'New: the story of Wren Hollow', eyebrow: 'New: the story of Wren Hollow', town: { on: townOn() },
+      title: 'Wren Hollow has a story now.', body: 'Want the story so far?', escape: 1,
+      buttons: [
+        { label: 'Story so far (about 2 min)', primary: true, run: () => { offered(); Story.play(ids, { replay: true, backdrop: 'town', town: townOn(), onDone: done }); } },
+        { label: 'Later', run: () => { offered(); done(); } },
+      ],
+    });
+  }
+  // The story steps for this opening of the map (see runMapEvents).
+  function mapStory() {
+    const out = { before: [], hold: null, holdAt: -1, after: [] };
+    const pc = lastFirstWin;
+    lastFirstWin = null;
+    const ends = STORY_CHAPTERS.filter((c) => chapterDone(c) && !progress.story.seen[endScene(c).id]);
+    if (!storyOn()) {
+      ends.forEach((c) => markSeen(endScene(c).id));
+      if (chapterDone(STORY_CHAPTERS[STORY_CHAPTERS.length - 1])) markSeen(EPILOGUE);
+      return out;
+    }
+    if (!progress.story.offered) out.before.push(catchUp);
+    if (ends.length) {
+      ends.slice(0, -1).forEach((c) => markSeen(endScene(c).id));
+      const c = ends[ends.length - 1];
+      out.hold = (next) => chapterClose(c, pc, next);
+      out.holdAt = levelsOfChapter(c).slice(-1)[0];
+    } else if (pc !== null) out.after.push((next) => { showPostcard(pc, 4000); next(); });
+    return out;
+  }
+
+  // ---------- Story log ----------
+  let storyReturn = 'levels';
+  function storyLogGroups() {
+    const seen = (id) => !!progress.story.seen[id];
+    const info = (sc) => {
+      const t = sc.trigger;
+      const lv = t.chapter ? levelsOfChapter(t.chapter) : [];
+      const n = CHAPTERS.findIndex((c) => c.id === t.chapter) + 1;
+      const [where, lock] = t.type === 'prologue' ? ['Before level 1', 'Reach level 1']
+        : t.type === 'chapterStart' ? [`Chapter ${n} opening`, `Reach level ${lv[0] + 1}`]
+        : t.type === 'chapterEnd' ? [`Chapter ${n} closing`, `Finish level ${lv[lv.length - 1] + 1}`]
+        : t.type === 'levelStart' ? [`Before level ${t.level}`, `Reach level ${t.level}`]
+        : t.type === 'levelWin' ? [`After level ${t.level}`, `Finish level ${t.level}`]
+        : [`After level ${LEVELS.length}`, `Finish level ${LEVELS.length}`];
+      return { id: sc.id, title: sc.title, where, lock, seen: seen(sc.id) };
+    };
+    const special = (type) => STORY.scenes.filter((sc) => sc.trigger.type === type).map(info);
+    return [
+      { title: 'Prologue', rows: special('prologue') },
+      ...CHAPTERS.map((c, n) => ({ title: `Chapter ${n + 1}, ${c.name}`, rows: STORY.scenes.filter((sc) => sc.chapter === c.id && !['prologue', 'epilogue'].includes(sc.trigger.type)).map(info) })),
+      { title: 'Epilogue', rows: special('epilogue') },
+    ];
+  }
+  function openStoryLog(from) {
+    storyReturn = from;
+    $('story-transcript').hidden = true;
+    $('story-list').hidden = false;
+    $('story-head').textContent = 'Story';
+    Story.renderLog($('story-list'), storyLogGroups(), {
+      onPlay: (id) => { Audio.play('click'); Story.play([id], { replay: true, backdrop: 'town', town: townOn() }); },
+      onRead: (id) => {
+        Audio.play('click');
+        Story.transcript($('story-transcript'), id);
+        $('story-list').hidden = true;
+        $('story-transcript').hidden = false;
+        $('story-transcript').scrollTop = 0;
+        $('story-back').focus({ preventScroll: true });
+      },
+    });
+    showScreen('story');
+  }
 
   // Board and map input waits a moment after any screen change, so the
   // second tap of a double tap on Play, Next or Replay can't build a tower
@@ -95,7 +308,7 @@
     if (name !== screen) screenChangedAt = performance.now();
     screen = name;
     for (const s of screens) $('screen-' + s).hidden = s !== name;
-    const inGame = name === null || name === 'pause' || name === 'win';
+    const inGame = name === null || name === 'pause' || name === 'win' || (name === 'story' && storyReturn === 'pause');
     app.classList.toggle('mode-menu', !inGame);
     app.classList.toggle('mode-game', inGame);
     for (const s of ['pause', 'win', 'settings']) $('screen-' + s).classList.toggle('dim', true);
@@ -106,7 +319,7 @@
     if (name !== 'levels') stopMapAnim();
     if (name === 'title') updateTitle();
     requestAnimationFrame(fitBoard);
-    const focusTarget = { title: 'title-play', levels: null, settings: 'settings-back', pause: 'pause-resume', win: 'win-next' }[name];
+    const focusTarget = { title: 'title-play', levels: null, settings: 'settings-back', pause: 'pause-resume', win: 'win-next', story: 'story-back' }[name];
     // The title's main button only takes focus for keyboard players, so a
     // tap or a fresh load doesn't show a focus ring on it.
     if (name === 'title' && !keyboardUser) return;
@@ -137,16 +350,26 @@
     buildTray();
     showScreen(null);
     updateHud();
-    toast(level.hint, 4200);
-    if (level.callout && !progress.seen['callout-' + index]) {
-      progress.seen['callout-' + index] = true;
-      save();
-      // In phone landscape a chip callout shares the side slot with the
-      // start toast, so it waits for the toast to finish.
-      const wait = landscape() && level.callout.at.startsWith('chip') ? 4400 : 350;
-      setTimeout(() => { if (state && state.index === index && !screen && !state.history.length && !drag) showCallout(level.callout.text, level.callout.at); }, wait);
-    }
+    const run = state.attempt;
+    // The level's hint and one-time tip wait until any story scene is over.
+    const begin = () => {
+      if (!state || state.attempt !== run) return;
+      toast(level.hint, 4200);
+      if (level.callout && !progress.seen['callout-' + index]) {
+        progress.seen['callout-' + index] = true;
+        save();
+        // In phone landscape a chip callout shares the side slot with the
+        // start toast, so it waits for the toast to finish.
+        const wait = landscape() && level.callout.at.startsWith('chip') ? 4400 : 350;
+        setTimeout(() => { if (state && state.index === index && !screen && !state.history.length && !drag && !Story.active) showCallout(level.callout.text, level.callout.at); }, wait);
+      }
+    };
+    const intro = introScenes(index);
+    // The scene waits two frames so the board has its size for focus rings.
+    if (intro.length && storyOn()) requestAnimationFrame(() => requestAnimationFrame(() => { if (state && state.attempt === run) playScenes(intro, begin); }));
+    else { intro.forEach(markSeen); begin(); }
   }
+
 
   // ---------- Tower tray ----------
   const remaining = (type) => state.budget[type] - state.towers.filter((t) => typeOf(t) === type).length -
@@ -391,6 +614,7 @@
     const stars = starsEarned();
     const i = state.index;
     const prevStars = starsFor(i);
+    if (!prevStars) lastFirstWin = i;
     progress.stars[i] = Math.max(prevStars, stars);
     progress.best[i] = Math.min(progress.best[i] ?? Infinity, state.moves);
     save();
@@ -702,7 +926,7 @@
     refreshPreview();
   });
   canvas.addEventListener('pointerdown', (e) => {
-    if (!state || screen || press || drag || state.won || inputGuarded(e)) return;
+    if (!state || screen || press || drag || state.won || inputGuarded(e) || Story.active) return;
     if (e.button && e.button !== 0) return;
     carry = null;
     const tile = board.tileAtPoint(e.clientX, e.clientY);
@@ -784,7 +1008,7 @@
   dragCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   function chipDown(e, type, chip) {
-    if (!state || screen || press || drag || state.won || inputGuarded(e)) return;
+    if (!state || screen || press || drag || state.won || inputGuarded(e) || Story.active) return;
     if (e.button && e.button !== 0) return;
     suppressClick = false;
     press = { id: e.pointerId, chip: type, x: e.clientX, y: e.clientY, type: e.pointerType };
@@ -886,7 +1110,25 @@
   on('hint-btn', hint);
   on('mute-btn', () => setSound(!progress.sound, true));
 
-  on('title-play', clicky(() => (allBeaten() ? openLevels() : startLevel(firstUnfinished()))));
+  on('title-play', clicky(() => {
+    if (allBeaten()) { openLevels(); return; }
+    const go = () => startLevel(firstUnfinished());
+    // A fresh save hears the prologue first.
+    if (beatenCount() === 0 && !progress.story.seen[PROLOGUE]) playScenes([PROLOGUE], go);
+    else go();
+  }));
+  on('map-story', clicky(() => openStoryLog('levels')));
+  on('pause-story', clicky(() => openStoryLog('pause')));
+  on('story-back', clicky(() => {
+    if (!$('story-transcript').hidden) {
+      $('story-transcript').hidden = true;
+      $('story-list').hidden = false;
+      return;
+    }
+    if (storyReturn === 'levels') openLevels(); else showScreen(storyReturn);
+  }));
+  $('story-toggle').addEventListener('change', (e) => { progress.story.on = e.target.checked; save(); });
+  $('story-speed').addEventListener('change', (e) => { if (SPEEDS.includes(e.target.value)) { progress.story.speed = e.target.value; save(); } });
   on('title-sound', () => setSound(!progress.sound, true));
   on('map-play', clicky(() => { const c = currentLevel(); if (c >= 0) startLevel(c); }));
   on('title-levels', clicky(openLevels));
@@ -922,6 +1164,7 @@
     progress.best = {};
     progress.seen = {};
     progress.road = 0;
+    progress.story = { seen: {}, townShown: [], offered: true, on: progress.story.on, speed: progress.story.speed };
     save();
     btn.classList.remove('confirm');
     btn.textContent = 'Progress erased';
@@ -932,6 +1175,8 @@
   let settingsReturn = 'title';
   function openSettings() {
     $('sound-toggle').checked = progress.sound;
+    $('story-toggle').checked = progress.story.on;
+    $('story-speed').value = progress.story.speed;
     $('reset-progress').textContent = 'Reset progress';
     $('reset-progress').classList.remove('confirm');
     showScreen('settings');
@@ -976,7 +1221,19 @@
     $('title-progress').setAttribute('aria-label', `${stars} of ${N * 3} stars, ${done} of ${N} levels`);
     // The entrance plays on the first title display after page load only.
     $('screen-title').classList.toggle('enter', !titleShown && !reducedMotion());
+    renderTitleTown();
     titleShown = true;
+  }
+
+  // The start screen's town: one landmark lit per connected chapter. A
+  // landmark earned since the start screen last showed brightens in once.
+  function renderTitleTown() {
+    const on = townOn();
+    const fresh = on.filter((c) => !progress.story.townShown.includes(c));
+    if (fresh.length) { progress.story.townShown.push(...fresh); save(); }
+    const box = $('title-hero');
+    box.innerHTML = '';
+    box.appendChild(Story.townSvg({ on, reveal: fresh.length && !reducedMotion() ? fresh[fresh.length - 1] : null }));
   }
 
   // ---------- Level map (road path) ----------
@@ -1062,6 +1319,11 @@
     el.setAttribute('aria-hidden', 'true');
     el.innerHTML = `<span class="k">Level ${i + 1}</span><span class="n"></span>`;
     el.querySelector('.n').textContent = LEVELS[i].name;
+    if (starsFor(i) > 0 && levelLine(i)) {
+      el.classList.add('has-line');
+      el.insertAdjacentHTML('beforeend', '<span class="ln"></span>');
+      el.querySelector('.ln').textContent = levelLine(i);
+    }
     const room = left ? p.x - d / 2 - 14 : map.COL - (p.x + d / 2 + 14);
     el.style.maxWidth = `${Math.max(80, room)}px`;
     el.style.top = `${p.y - 24}px`;
@@ -1085,6 +1347,9 @@
       '<span class="t"><span class="k"></span><span class="n"></span></span><span class="s"></span>';
     el.querySelector('.n').textContent = ch.name;
     setBannerOpen(el, b, open, stars, idx.length);
+    if (chapterDone(ch.id)) { el.classList.add('done'); el.querySelector('.n').insertAdjacentHTML('afterend', '<span class="tag">Connected</span>'); }
+    // A tap on an open chapter's banner replays its opening scene.
+    if (open && progress.story.seen[startScene(ch.id).id]) { el.classList.add('replay'); el.dataset.scene = startScene(ch.id).id; el.title = 'Replay the chapter opening'; }
     return el;
   }
   function setBannerOpen(el, b, open, stars, count) {
@@ -1199,7 +1464,7 @@
     }
     $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4);
     if (!pendingAnim && view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');
-    runMapEvents(view, focusNode, after !== null);
+    runMapEvents(view, focusNode, after !== null, mapStory());
   }
 
   // ---------- Map events ----------
@@ -1210,10 +1475,17 @@
   // `focusNode`: focused, and highlighted when `arrive` is set.
   const queuedMapEvents = [];
   function queueMapEvent(fn) { queuedMapEvents.push(fn); }
-  function runMapEvents(view, focusNode, arrive) {
-    const steps = [];
-    if (view.animate.length) steps.push((done) => startMapAnim(view, done));
+  // `story` (from mapStory): steps before the road, a `hold` that the road
+  // pauses for at the banner after level `holdAt` (a chapter's close; it
+  // runs after the road if the road doesn't pass there), and steps after.
+  function runMapEvents(view, focusNode, arrive, story = {}) {
+    const steps = [...(story.before || [])];
+    let holdUsed = false;
+    const hold = story.hold ? (resume) => { holdUsed = true; story.hold(resume); } : null;
+    if (view.animate.length) steps.push((done) => startMapAnim(view, done, hold, story.holdAt));
+    if (hold) steps.push((done) => (holdUsed ? done() : hold(done)));
     steps.push(...queuedMapEvents.splice(0));
+    steps.push(...(story.after || []));
     const next = () => {
       if (screen !== 'levels') return;
       const step = steps.shift();
@@ -1237,6 +1509,8 @@
   $('map-scroll').addEventListener('scroll', () => $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4), { passive: true });
 
   $('map-track').addEventListener('click', (e) => {
+    const banner = e.target.closest('.map-banner.replay');
+    if (banner && !mapAnim && !inputGuarded()) { Audio.play('click'); Story.play([banner.dataset.scene], { replay: true, backdrop: 'town', town: townOn() }); return; }
     const node = e.target.closest('.map-node');
     if (!node || mapAnim || performance.now() - skippedAt < 500 || inputGuarded()) return;
     const i = Number(node.dataset.level);
@@ -1265,6 +1539,7 @@
   document.addEventListener('keydown', (e) => {
     if (screen !== 'levels' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (mapAnim) { skipMapAnim(); e.preventDefault(); return; }
+    if (Story.active) return;
     const k = e.key;
     if (k === 'Escape') { e.preventDefault(); Audio.play('click'); showScreen('title'); return; }
     const focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.map-node');
@@ -1294,26 +1569,32 @@
     return 3 * u * u * (1 - u) + u ** 3;
   };
 
-  function startMapAnim(view, onEnd) {
+  function startMapAnim(view, onEnd, hold = null, holdAt = -1) {
     const timers = [];
     let raf = 0;
-    const anim = { view, timers, done: false, resized: false, onEnd, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
+    const anim = { view, timers, done: false, resized: false, onEnd, hold, held: false, heldDone: false, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
     mapAnim = anim;
     const at = (ms, fn) => timers.push(setTimeout(() => { if (mapAnim === anim) fn(); }, ms));
     const track = $('map-track');
     const svg = track.querySelector('.map-road .travelled');
-    let t0 = 250;
-    view.animate.forEach((k) => {
-      const a = map.nodes[k], b = map.nodes[k + 1];
+    const segs = view.animate.slice();
+    const finish = () => {
+      mapAnim = null;
+      anim.done = true;
+      // A resize during the animation was skipped: lay the map out now.
+      if (anim.resized) relayoutMap(view);
+      if (onEnd) onEnd();
+    };
+    const runSeg = (n) => {
+      const k = segs[n], a = map.nodes[k], b = map.nodes[k + 1];
       const banner = map.banners.find((bn) => bn.first === k + 1);
       const drawMs = banner ? 900 : 700;
-      const shift = banner ? 200 : 0;
-      at(t0, () => {
-        const n = mapNodeEl(k);
-        if (n) { n.classList.remove('ack'); void n.offsetWidth; n.classList.add('ack'); }
-        Audio.play('lift');
-      });
-      at(t0 + 120, () => {
+      // The road stops at the banner while the chapter before it closes.
+      const pauseHere = banner && hold && k === holdAt;
+      const n0 = mapNodeEl(k);
+      if (n0) { n0.classList.remove('ack'); void n0.offsetWidth; n0.classList.add('ack'); }
+      Audio.play('lift');
+      at(120, () => {
         const d = segPath(a, b);
         svg.insertAdjacentHTML('beforeend', `<path class="glow" d="${d}"/><path class="line" d="${d}"/>`);
         const paths = [...svg.querySelectorAll('path')].slice(-2);
@@ -1324,8 +1605,7 @@
         track.appendChild(packet);
         const { sc, h } = mapBand();
         if (b.y > sc.scrollTop + h - 40) scrollMapTo(b.y, 0.55, true);
-        const start = performance.now();
-        let opened = false;
+        let start = performance.now(), opened = false;
         const step = (now) => {
           if (mapAnim !== anim) { packet.remove(); return; }
           const p = Math.min(1, (now - start) / drawMs);
@@ -1333,22 +1613,34 @@
           paths.forEach((el) => { el.style.strokeDashoffset = `${len * (1 - e)}`; });
           const pt = paths[1].getPointAtLength(len * e);
           packet.style.left = `${pt.x}px`; packet.style.top = `${pt.y}px`;
-          if (banner && !opened && pt.y >= banner.top) { opened = true; openBanner(banner); }
-          if (p < 1) raf = requestAnimationFrame(step);
-          else { packet.remove(); paths.forEach((el) => { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; }); }
+          if (banner && !opened && pt.y >= banner.top - (pauseHere ? 6 : 0)) {
+            if (pauseHere && !anim.held) {
+              anim.held = true;
+              const pausedAt = now - start;
+              hold(() => {
+                if (mapAnim !== anim) return;
+                anim.heldDone = true;
+                opened = true;
+                openBanner(banner);
+                start = performance.now() - pausedAt;
+                raf = requestAnimationFrame(step);
+              });
+              return;
+            }
+            opened = true;
+            openBanner(banner);
+          }
+          if (p < 1) { raf = requestAnimationFrame(step); return; }
+          packet.remove();
+          paths.forEach((el) => { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; });
+          unlockNode(k + 1, view);
+          if (n + 1 < segs.length) at(710, () => runSeg(n + 1));
+          else at(560, finish);
         };
         raf = requestAnimationFrame(step);
       });
-      at(t0 + 820 + shift, () => unlockNode(k + 1, view));
-      t0 += 1380 + shift + 150;
-    });
-    at(t0 - 150, () => {
-      mapAnim = null;
-      anim.done = true;
-      // A resize during the animation was skipped: lay the map out now.
-      if (anim.resized) relayoutMap(view);
-      if (onEnd) onEnd();
-    });
+    };
+    at(250, () => runSeg(0));
   }
 
   function openBanner(b) {
@@ -1386,12 +1678,13 @@
   }
   // Skip: jump straight to the end state.
   function skipMapAnim() {
-    if (!mapAnim) return;
-    const { view, onEnd } = mapAnim;
+    if (!mapAnim || mapAnim.held) return; // the road waits at a banner while a chapter closes
+    const { view, onEnd, hold } = mapAnim;
     stopMapAnim();
     const sc = $('map-scroll'), top = sc.scrollTop;
     renderMap(view, false);
     sc.scrollTop = top;
+    if (hold) { hold(() => { if (onEnd) onEnd(); }); return; }
     if (onEnd) { onEnd(); return; }
     const el = mapNodeEl(view.cur >= 0 ? view.cur : LEVELS.length - 1);
     if (el) el.focus({ preventScroll: true });
@@ -1400,7 +1693,7 @@
   let skippedAt = -1e9;
   // The second tap of a double tap on Next level doesn't skip the road.
   $('screen-levels').addEventListener('pointerdown', (e) => {
-    if (!mapAnim) return;
+    if (!mapAnim || (e.target.closest && e.target.closest('.postcard'))) return;
     skippedAt = performance.now();
     e.stopPropagation();
     if (!inputGuarded(e)) skipMapAnim();
@@ -1537,7 +1830,8 @@
 
   // Test hook for the automated playthrough; harmless for players.
   window.__signalTest = {
-    startLevel, act, undo, hint, selectType, board, targetAt, openLevels, queueMapEvent,
+    startLevel, act, undo, hint, selectType, board, targetAt, openLevels, queueMapEvent, story: Story, townOn, openStoryLog,
+    get progress() { return progress; },
     get mapAnim() { return !!mapAnim; },
     get state() { return state; },
     get drag() { return drag && { source: drag.source, type: drag.type, target: drag.target, valid: drag.valid, overTray: drag.overTray, ghost: ghostCentre() }; },

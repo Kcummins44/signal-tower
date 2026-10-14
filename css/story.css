@@ -1,0 +1,240 @@
+/* Story: "The Keeper of Wren Hollow". Iris's spec: design/story-spec.md. */
+
+:root {
+  --st-dim: rgba(12, 18, 26, 0.55);
+  --st-card: rgba(38, 49, 61, 0.98);
+  --st-ease: cubic-bezier(.2, .8, .2, 1);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- Town hero (Iris's design/town-hero.svg, inlined; its CSS scoped here) ---------- */
+.town-svg { display: block; }
+.town-svg .waves circle { transform-box: view-box; transform-origin: 160px 58px; animation: hero-wave 3s linear infinite; opacity: 0; }
+.town-svg .waves circle:nth-child(2) { animation-delay: 1s; }
+.town-svg .waves circle:nth-child(3) { animation-delay: 2s; }
+@keyframes hero-wave { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(6.5); opacity: 0; } }
+.town-svg .beacon { animation: hero-blink 1.2s ease-in-out infinite alternate; }
+@keyframes hero-blink { from { opacity: 0.55; } to { opacity: 1; } }
+.town-svg .star { animation: hero-twinkle 3.2s ease-in-out infinite alternate; }
+.town-svg .star.sb { animation-duration: 2.6s; animation-delay: 0.7s; }
+.town-svg .star.sc { animation-duration: 4s; animation-delay: 1.4s; }
+@keyframes hero-twinkle { from { opacity: 0.2; } to { opacity: 0.7; } }
+.town-svg .h .win { animation: hero-lamp 6s steps(1, end) infinite; }
+.town-svg .h2 .win { animation-delay: 0.35s; }
+.town-svg .h3 .win { animation-delay: 0.7s; }
+@keyframes hero-lamp { 0% { fill: #3a4552; } 12% { fill: #ffd27a; } 88% { fill: #ffd27a; } 96% { fill: #3a4552; } }
+.town-svg .links { animation: hero-links 6s ease-in-out infinite; }
+@keyframes hero-links { 0%, 10% { opacity: 0; } 22%, 86% { opacity: 0.55; } 96%, 100% { opacity: 0; } }
+/* Town layers: "on" once that chapter is connected, "reveal" plays the brighten-in once. */
+.town-svg .tl .tl-on { display: none; }
+.town-svg .tl.on .tl-on { display: inline; }
+.town-svg .tl.on .tl-off { display: none; }
+.town-svg .tl.reveal .tl-on { animation: tl-in 900ms var(--st-ease) both; }
+.town-svg .tl.reveal.later .tl-on { animation-delay: 300ms; }
+@keyframes tl-in { 0% { opacity: 0; } 40% { opacity: 1; filter: brightness(1.6); } 100% { opacity: 1; filter: none; } }
+.town-svg .meteor { stroke-dasharray: 40 400; stroke-dashoffset: 40; animation: tl-meteor 7s linear infinite; }
+.town-svg .meteor.m2 { animation-delay: 2.4s; }
+.town-svg .meteor.m3 { animation-delay: 4.6s; }
+@keyframes tl-meteor { 0% { stroke-dashoffset: 40; opacity: 1; } 10% { stroke-dashoffset: -40; opacity: 1; } 11%, 100% { stroke-dashoffset: -40; opacity: 0; } }
+
+/* ---------- Scene overlay ---------- */
+.story { position: fixed; inset: 0; z-index: 40; touch-action: none; }
+/* The town backdrop shows the whole scene in the space above the card, its
+   edges faded into the page like the start screen's hero. */
+.st-backdrop { position: absolute; inset: 0; overflow: hidden; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: calc(64px + var(--safe-t)) 0 calc(200px + var(--safe-b)); }
+.st-backdrop .town-svg {
+  width: 100%; height: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-composite: intersect;
+}
+@media (max-height: 560px) and (orientation: landscape) { .st-backdrop { padding: calc(8px + var(--safe-t)) 0 calc(150px + var(--safe-b)); } }
+@media (min-width: 900px) and (min-height: 600px) { .st-backdrop { padding: 24px 0 220px; } }
+.st-backdrop.settle .town-svg { animation: st-settle 6s ease-out both; }
+@keyframes st-settle { from { transform: scale(1.04); } to { transform: none; } }
+.st-dim { position: absolute; inset: 0; background: var(--st-dim); animation: fade-in 200ms ease-out both; }
+.story.out .st-dim { animation: st-fade-out 200ms ease-in both; }
+@keyframes st-fade-out { to { opacity: 0; } }
+.st-rings { position: absolute; inset: 0; pointer-events: none; }
+.st-ring { position: absolute; border-radius: 50%; border: 3px solid var(--sc, #7fe0d0); animation: st-ring-in 220ms ease-out both, st-ring-pulse 1.6s ease-in-out 220ms infinite; }
+.st-ring.outer { border-width: 2px; opacity: 0.5; animation: st-ring-in 220ms ease-out both; }
+.st-ring.chip { border-radius: 16px; }
+@keyframes st-ring-in { from { transform: scale(1.15); opacity: 0; } }
+@keyframes st-ring-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.st-controls { position: absolute; top: calc(12px + var(--safe-t)); right: 16px; display: flex; gap: 10px; z-index: 2; }
+.st-controls button {
+  height: 44px; border-radius: 22px; border: 1px solid var(--line); background: rgba(38, 49, 61, 0.94);
+  color: var(--text); font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+}
+.st-ff { width: 44px; padding: 0; }
+.st-ff[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.st-skip { width: 92px; padding: 0 12px 0 16px; }
+.st-controls svg { width: 18px; height: 18px; }
+
+/* The card. Phone portrait is the base layout. */
+.st-card {
+  position: absolute; left: 16px; right: 16px; bottom: calc(16px + var(--safe-b)); min-height: 170px;
+  display: flex; flex-direction: column; text-align: left; padding: 14px 24px 14px; margin: 0;
+  background: var(--st-card); border: 1px solid var(--line); border-radius: 20px; color: var(--text);
+  box-shadow: 0 6px 0 rgba(6, 10, 16, 0.35), var(--shadow); cursor: pointer; font: inherit;
+  transition: top 200ms var(--st-ease), bottom 200ms var(--st-ease), transform 200ms var(--st-ease);
+  animation: st-card-in 260ms var(--st-ease) 60ms both;
+}
+.st-card:focus { outline: none; }
+/* Keyboard focus: a quiet ring, so the card still reads as Iris's card. */
+.st-card:focus-visible { outline: 2px solid rgba(127, 224, 208, 0.45); outline-offset: 3px; }
+.story.out .st-card { animation: st-card-out 200ms ease-in both; }
+@keyframes st-card-in { from { opacity: 0; transform: translateY(24px); } }
+@keyframes st-card-out { to { opacity: 0; transform: translateY(16px); } }
+.st-card.top { bottom: auto; top: calc(68px + var(--safe-t)); }
+.st-portrait { position: absolute; left: 18px; top: -38px; width: 76px; height: 76px; border-radius: 50%; animation: st-portrait-in 160ms ease-out 140ms both; }
+.st-card.top .st-portrait { top: 14px; }
+.st-portrait svg { width: 100%; height: 100%; display: block; }
+.st-portrait.swap svg { animation: fade-in 120ms ease-out; }
+@keyframes st-portrait-in { from { transform: scale(0.9); opacity: 0; } }
+.st-head { display: flex; flex-direction: column; justify-content: center; min-height: 38px; margin: 0 0 6px 86px; }
+.st-card.top .st-head { min-height: 52px; }
+.st-head.swap { animation: fade-in 150ms ease-out; }
+.st-name { font-size: 0.9375rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sc, var(--accent)); line-height: 1.2; }
+.st-role { font-size: 0.75rem; font-weight: 600; color: var(--muted); line-height: 1.3; }
+.st-text { display: block; font-size: 1.0625rem; line-height: 1.5625rem; font-weight: 500; min-height: calc(3 * 1.5625rem); max-height: calc(5 * 1.5625rem); overflow-y: auto; white-space: pre-wrap; }
+.st-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; min-height: 16px; }
+.st-dots { display: flex; gap: 6px; align-items: center; }
+.st-dots i { width: 6px; height: 6px; border-radius: 3px; background: #4a5868; }
+.st-dots i.cur { width: 16px; background: var(--accent); }
+.st-next { width: 18px; height: 18px; color: var(--accent); opacity: 0; transition: opacity 120ms; }
+.st-card.typed .st-next { opacity: 1; animation: st-bob 1s ease-in-out infinite; }
+@keyframes st-bob { 0%, 100% { transform: none; } 50% { transform: translateY(3px); } }
+/* Narrator: centred text under a small tower glyph, no portrait or name. */
+.st-glyph { display: none; align-self: center; width: 28px; height: 28px; margin-bottom: 4px; }
+.st-card.narrator .st-glyph { display: block; }
+.st-card.narrator .st-portrait, .st-card.narrator .st-head { display: none; }
+.st-card.narrator .st-text { text-align: center; font-weight: 600; min-height: calc(2 * 1.5625rem); display: flex; align-items: center; justify-content: center; }
+
+/* Phone landscape: narrower card, inline portrait, text beside it. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .st-controls { right: calc(16px + env(safe-area-inset-right, 0px)); }
+  .st-card { left: 50%; right: auto; width: 560px; max-width: calc(100vw - 32px); transform: translateX(-50%); bottom: calc(12px + var(--safe-b)); min-height: 136px; padding: 16px 20px 12px 88px; }
+  .story.out .st-card { animation: st-card-out-l 200ms ease-in both; }
+  @keyframes st-card-out-l { to { opacity: 0; } }
+  .st-card { animation-name: fade-in; }
+  .st-portrait, .st-card.top .st-portrait { left: 16px; top: 16px; width: 56px; height: 56px; }
+  .st-head, .st-card.top .st-head { flex-direction: row; justify-content: flex-start; align-items: baseline; gap: 10px; min-height: 0; margin: 0 0 4px 0; }
+  .st-name { font-size: 0.8125rem; }
+  .st-text { font-size: 1rem; line-height: 1.4375rem; min-height: calc(2 * 1.4375rem); max-height: calc(4 * 1.4375rem); }
+  .st-card.narrator { padding-left: 20px; }
+  .st-card.top { top: calc(64px + var(--safe-t)); }
+}
+/* Desktop. */
+@media (min-width: 900px) and (min-height: 600px) {
+  .st-card { left: 50%; right: auto; width: 760px; transform: translateX(-50%); bottom: 32px; min-height: 172px; padding: 16px 28px 16px; }
+  .st-card { animation-name: fade-in; }
+  .st-portrait { width: 88px; height: 88px; top: -44px; }
+  .st-head { margin-left: 100px; min-height: 44px; }
+  .st-card.top .st-head { min-height: 74px; }
+  .st-name { font-size: 1.0625rem; }
+  .st-role { font-size: 0.875rem; }
+  .st-text { font-size: 1.1875rem; line-height: 1.75rem; min-height: calc(2 * 1.75rem); max-height: calc(5 * 1.75rem); }
+  .st-card.narrator .st-text { min-height: calc(2 * 1.75rem); }
+}
+
+/* ---------- Level postcard (map) ---------- */
+.postcard {
+  position: absolute; left: 50%; bottom: calc(96px + var(--safe-b)); z-index: 5; width: min(var(--col, 340px), 340px); max-width: calc(100vw - 32px);
+  min-height: 88px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+  background: rgba(38, 49, 61, 0.97); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  animation: pc-in 220ms var(--st-ease) both; cursor: pointer;
+}
+.postcard.out { animation: pc-out 200ms ease-in both; }
+@keyframes pc-in { from { opacity: 0; transform: translate(-50%, 16px); } }
+@keyframes pc-out { to { opacity: 0; } }
+.postcard .pc-house { width: 40px; height: 40px; border-radius: 50%; background: #303c4a; display: grid; place-items: center; flex: none; }
+.postcard .pc-house svg { width: 24px; height: 24px; }
+.postcard .pc-k { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.postcard .pc-t { display: block; font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--text); }
+@media (max-height: 560px) and (orientation: landscape) {
+  .postcard { min-height: 72px; bottom: calc(72px + var(--safe-b)); padding: 8px 14px; }
+}
+
+/* ---------- Story cards: town card, catch-up offer, ending ---------- */
+.story-card-wrap { position: fixed; inset: 0; z-index: 38; display: grid; place-items: center; padding: calc(16px + var(--safe-t)) 16px calc(16px + var(--safe-b)); background: var(--st-dim); animation: fade-in 200ms ease-out both; }
+.story-card-wrap.out { animation: st-fade-out 200ms ease-in both; }
+.story-card {
+  width: 324px; max-width: 100%; padding: 18px 16px 18px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line);
+  box-shadow: 0 6px 0 rgba(6, 10, 16, 0.35), var(--shadow); text-align: center; color: var(--text);
+  display: flex; flex-direction: column; align-items: center; animation: sc-in 260ms var(--st-ease) both; cursor: default;
+}
+@keyframes sc-in { from { opacity: 0; transform: scale(0.94); } }
+.story-card .sc-eyebrow { margin: 0 0 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--warm); }
+.story-card .sc-hero { width: 292px; max-width: 100%; aspect-ratio: 320 / 220; border-radius: 12px; overflow: hidden; }
+.story-card .sc-hero .town-svg { width: 100%; height: 100%; }
+.story-card .sc-text { display: flex; flex-direction: column; align-items: center; }
+.story-card .sc-title { margin: 14px 0 4px; font-size: 1.0625rem; font-weight: 700; }
+.story-card .sc-body { margin: 0; font-size: 0.875rem; color: var(--muted); line-height: 1.4; }
+.story-card .sc-tap { margin: 10px 0 0; font-size: 12px; font-weight: 700; color: var(--accent); opacity: 0; transition: opacity 200ms; }
+.story-card.ready .sc-tap { opacity: 1; }
+.story-card.tap { cursor: pointer; }
+.story-card .sc-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 16px; }
+.story-card .sc-buttons.row { flex-direction: row; }
+.story-card .sc-buttons { align-self: stretch; }
+.story-card .sc-buttons .btn { width: 100%; white-space: nowrap; }
+.story-card .sc-buttons.row .btn { flex: 1; }
+@media (min-width: 900px) and (min-height: 600px) {
+  .story-card { width: 380px; }
+  .story-card .sc-hero { width: 340px; }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  .story-card { width: 560px; flex-direction: row; gap: 16px; text-align: left; padding: 16px; position: relative; }
+  .story-card .sc-eyebrow { position: absolute; top: 14px; right: 16px; margin: 0; }
+  .story-card .sc-hero { width: 260px; flex: none; }
+  .story-card .sc-text { align-items: flex-start; flex: 1; min-width: 0; padding-top: 18px; }
+  .story-card .sc-buttons { margin-top: 12px; }
+}
+
+/* ---------- Map additions ---------- */
+.map-bar .map-title { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
+.map-banner.done { box-shadow: inset 0 0 0 2px var(--warm); }
+.map-banner .tag { font-size: 11px; font-weight: 700; color: var(--warm); line-height: 1.2; }
+.map-banner.replay { cursor: pointer; }
+.map-label .ln { display: none; font-size: 12px; font-weight: 600; color: var(--muted); white-space: normal; line-height: 1.3; }
+.map-label.has-line { height: auto; min-height: 48px; padding-block: 6px; }
+.map-node:hover + .map-label .ln, .map-node:focus-visible + .map-label .ln, .map-node.arrive + .map-label .ln { display: block; }
+
+/* ---------- Story log ---------- */
+.story-panel { width: min(520px, 100%); max-height: calc(100vh - 32px - var(--safe-t) - var(--safe-b)); display: flex; flex-direction: column; }
+.story-list { overflow-y: auto; margin: 0 -4px; padding: 0 4px; -webkit-overflow-scrolling: touch; }
+.story-list h3 { margin: 14px 2px 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--warm); }
+.story-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.story-row .sr-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.story-row .sr-title { font-size: 1rem; font-weight: 700; }
+.story-row .sr-where { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+.story-row.locked .sr-title { color: var(--muted); }
+.story-row .sr-lock { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.75rem; font-weight: 600; }
+.story-row .sr-lock svg { width: 16px; height: 16px; }
+.story-row .icon-btn { width: 44px; height: 44px; }
+.story-transcript { overflow-y: auto; user-select: text; -webkit-user-select: text; }
+.story-transcript h3 { margin: 0 0 10px; font-size: 1.05rem; }
+.story-transcript p { margin: 0 0 10px; line-height: 1.5; font-size: 1rem; }
+.story-transcript b { color: var(--sc, var(--text)); }
+.story-settings .setting select { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .town-svg .waves circle, .town-svg .beacon, .town-svg .star, .town-svg .h .win, .town-svg .links { animation: none; }
+  .town-svg .waves circle { opacity: 0.35; transform: scale(2.5); }
+  .town-svg .h .win { fill: #ffd27a; }
+  .town-svg .links { opacity: 0.55; }
+  .town-svg .tl.reveal .tl-on { animation: none; }
+  .town-svg .meteor { animation: none; stroke-dasharray: none; opacity: 0.8; }
+  .st-backdrop.settle .town-svg { animation: none; }
+  .st-card, .st-card.top { animation: fade-in 150ms ease-out both; transition: none; }
+  .story.out .st-card { animation: st-fade-out 150ms ease-in both; }
+  .st-portrait, .st-portrait.swap svg, .st-head.swap { animation: none; }
+  .st-card.typed .st-next { animation: none; }
+  .st-ring { animation: fade-in 150ms ease-out both; }
+  .story-card, .postcard { animation: fade-in 150ms ease-out both; }
+}
+.map-bar { grid-template-columns: 44px 1fr 44px auto; }
+.title-hero .town-svg { width: 100%; height: 100%; }
+.story-settings select { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; }

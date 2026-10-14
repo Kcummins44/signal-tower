@@ -12,8 +12,11 @@ const errors = [];
 let failures = 0;
 const check = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if (!cond) failures++; };
 
-async function open(browser, name, opts) {
+// Pages start with story scenes off (a test-only flag the game reads for
+// saves without a story setting), except where a test passes { story: true }.
+async function open(browser, name, opts, { story = false } = {}) {
   const ctx = await browser.newContext(opts);
+  if (!story) await ctx.addInitScript(() => { window.__signalStoryOff = true; });
   const page = await ctx.newPage();
   page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) errors.push(`[${name}] ${m.type()}: ${m.text()}`); });
   page.on('pageerror', (e) => errors.push(`[${name}] pageerror: ${e.message}`));
@@ -650,7 +653,7 @@ async function playLevel(page, sol, useDrag = true) {
         const r = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom, w: b.width, h: b.height }; };
         const hero = document.querySelector('.title-hero');
         const hr = hero.getBoundingClientRect();
-        return { hero: { l: hr.left, t: hr.top, r: hr.right, b: hr.bottom, loaded: hero.complete && hero.naturalWidth > 0 },
+        return { hero: { l: hr.left, t: hr.top, r: hr.right, b: hr.bottom, loaded: !!hero.querySelector('svg.town-svg .tower') },
           play: r('title-play'), map: r('title-levels'), settings: r('title-settings'), sound: r('title-sound'),
           stage: getComputedStyle(document.getElementById('stage')).visibility,
           scroll: document.getElementById('screen-title').scrollHeight <= document.getElementById('screen-title').clientHeight + 1 };
@@ -966,6 +969,351 @@ async function playLevel(page, sol, useDrag = true) {
     s2 = await st(dd);
     check(s2 && s2.index === 0 && s2.n === 0 && s2.moves === 0, `mouse double click on Play opens level 1 with an empty board (${s2 && s2.n} towers)`);
     await ddctx.close();
+  }
+
+  // Story ("The Keeper of Wren Hollow"): prologue, chapter scenes, skip and
+  // fast forward, postcards, the chapter close on the map, the Story log,
+  // old saves (no forced scenes, one catch-up offer), the town, settings,
+  // reduced motion, frame rate, and screenshots at three sizes.
+  {
+    const SIZES = [
+      ['desktop', { viewport: { width: 1280, height: 800 } }],
+      ['phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }],
+      ['landscape', { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }],
+    ];
+    const SKEY = 'signal-tower-v2';
+    // A save with the first n levels beaten and the story up to date (every
+    // scene before that point seen, catch-up already offered).
+    const storySave = (page, n, extra = {}) => page.evaluate(([n, extra]) => {
+      const stars = {}; for (let i = 0; i < n; i++) stars[i] = 3;
+      const lv = (c) => LEVELS.map((l, i) => ((l.chapter || 'basics') === c ? i : -1)).filter((i) => i >= 0);
+      const seen = {};
+      for (const sc of STORY.scenes) {
+        const t = sc.trigger;
+        const ok = t.type === 'prologue' ? true : t.type === 'chapterStart' ? lv(t.chapter)[0] < n : t.type === 'chapterEnd' ? lv(t.chapter).slice(-1)[0] < n
+          : t.type === 'levelStart' ? t.level - 1 < n : t.type === 'epilogue' ? n >= LEVELS.length : false;
+        if (ok) seen[sc.id] = true;
+      }
+      const done = STORY.town.map((t) => t.chapter).filter((c) => lv(c).slice(-1)[0] < n);
+      localStorage.setItem('signal-tower-v2', JSON.stringify({ stars, best: {}, sound: false, seen: { 'callout-0': true }, road: n,
+        story: { seen, townShown: done, offered: true, on: true, speed: 'normal', ...extra } }));
+    }, [n, extra]);
+    const reload = async (page) => { await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5); await page.waitForTimeout(250); };
+    const S = (page) => page.evaluate(() => window.__signalTest.story.state);
+    const saved = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), SKEY);
+    const solveHook = (page, i) => page.evaluate((i) => { const g = window.__signalTest; g.startLevel(i); for (const t of g.state.level.solutions[0]) { g.selectType(t.length > 2 ? 'dish' : 'mast'); g.act(t[0], t[1]); for (let f = 0; f < (t[2] || 0); f++) g.act(t[0], t[1]); } }, i);
+    const winAndNext = async (page, i) => {
+      await solveHook(page, i);
+      await page.waitForSelector('#screen-win:not([hidden])');
+      await page.waitForTimeout(500);
+      // The last level has no Next level button; its Level map button opens the map.
+      await page.click(i === 37 ? '#win-levels' : '#win-next');
+    };
+    const waitScene = (page, id, timeout = 9000) => page.waitForFunction((id) => window.__signalTest.story.state.scene === id, id, { timeout }).then(() => true).catch(() => false);
+    const finishLine = async (page) => { if (!(await S(page)).typed) { await page.keyboard.press('Enter'); await page.waitForTimeout(80); } };
+    const litLayers = (page, sel) => page.evaluate((sel) => [...new Set([...document.querySelectorAll(`${sel} .tl.on`)].map((g) => g.dataset.chapter))], sel);
+    const fps = (page) => page.evaluate(() => new Promise((res) => { const p = window.__signalPerf, f0 = p.frames, t0 = performance.now(); setTimeout(() => res((p.frames - f0) / ((performance.now() - t0) / 1000)), 2000); }));
+
+    // --- Fresh save: prologue, chapter opening, skip, fast forward, keyboard ---
+    const { page: s, ctx: sctx } = await open(browser, 'story-phone', SIZES[1][1], { story: true });
+    await s.click('#title-play'); await s.waitForTimeout(500);
+    let ss = await S(s);
+    const dlg = await s.evaluate(() => { const el = document.getElementById('story'); return { role: el.getAttribute('role'), modal: el.getAttribute('aria-modal'), label: el.getAttribute('aria-label'), focus: document.activeElement.classList.contains('st-card'), cardLabel: document.querySelector('.st-card').getAttribute('aria-label'), hiddenText: document.querySelector('.st-text').getAttribute('aria-hidden') }; });
+    const level0 = await st(s);
+    check(ss.scene === 'prologue' && level0 === null, `fresh save: Play opens the prologue before level 1 (${ss.scene})`);
+    check(dlg.role === 'dialog' && dlg.modal === 'true' && dlg.label === 'Story: The Night the Tower Fell' && dlg.focus && dlg.cardLabel === 'Next line, 1 of 6' && dlg.hiddenText === 'true',
+      `the scene is a modal dialog named for the scene, focus is on the card ("${dlg.cardLabel}") and the typed text is hidden from screen readers`);
+    check(ss.live === 'Wren Hollow, the night after the big storm.', `the live region gets the whole line at once ("${ss.live}")`);
+    await s.waitForTimeout(150);
+    ss = await S(s);
+    check(ss.chars > 0 && ss.chars < 43 || ss.typed, `the line types out (${ss.chars} characters so far)`);
+    await s.screenshot({ path: `${OUT}/story-prologue-phone.png` });
+    await s.keyboard.press('Enter'); await s.waitForTimeout(60);
+    ss = await S(s);
+    check(ss.typed && ss.line === 0, 'Enter finishes the typing first');
+    await s.keyboard.press('Enter'); await s.waitForTimeout(100);
+    ss = await S(s);
+    check(ss.line === 1 && ss.live.startsWith('Nell: Well, that'), `Enter then moves to the next line (${ss.live.slice(0, 30)})`);
+    // Fast forward: lines run on their own.
+    await s.click('.st-ff');
+    const ffT0 = Date.now();
+    await s.waitForFunction(() => window.__signalTest.story.state.line >= 4, null, { timeout: 8000 }).catch(() => {});
+    ss = await S(s);
+    check(ss.ff && ss.line >= 4 && (await s.getAttribute('.st-ff', 'aria-pressed')) === 'true', `fast forward auto-advances (line ${ss.line + 1} after ${Date.now() - ffT0}ms)`);
+    await s.keyboard.press('f');
+    ss = await S(s);
+    check(!ss.ff, 'F toggles fast forward off');
+    // Esc skips the rest; the scene counts as seen; level 1 loads and its opening plays.
+    await s.keyboard.press('Escape');
+    const opened = await waitScene(s, 'basics.start', 3000);
+    let sv = await saved(s);
+    check(sv.story.seen.prologue === true && opened && (await st(s))?.index === 0, 'Esc skips the prologue (marked seen) and level 1 opens with Main Street\'s opening');
+    await s.waitForTimeout(400);
+    const rings = await s.evaluate(() => {
+      const card = document.querySelector('.st-card').getBoundingClientRect();
+      const rs = [...document.querySelectorAll('.st-ring:not(.outer)')].map((r) => r.getBoundingClientRect());
+      const g = window.__signalTest.state.grid, houses = g.rows.flat().filter((t) => t === 'H').length;
+      return { n: rs.length, houses, under: rs.filter((r) => r.left < card.right && r.right > card.left && r.top < card.bottom && r.bottom > card.top).length, colour: getComputedStyle(document.querySelector('.st-ring')).borderTopColor };
+    });
+    check(rings.n === rings.houses && rings.under === 0 && rings.colour === 'rgb(255, 210, 122)', `"[focus H]" rings every house in Nell's colour, none under the card (${rings.n} rings, ${rings.houses} houses)`);
+    // Board input is blocked while a scene plays, and game keys are ignored.
+    let t1 = await tile(s, 1, 1);
+    await s.touchscreen.tap(t1.x, t1.y); await s.waitForTimeout(80);
+    await s.keyboard.press('z'); await s.keyboard.press('r');
+    check((await st(s)).n === 0 && (await S(s)).scene === 'basics.start', 'taps and game keys during a scene never touch the board');
+    // Skip button.
+    await s.click('.st-skip'); await s.waitForTimeout(400);
+    sv = await saved(s);
+    check(!(await S(s)).scene && sv.story.seen['basics.start'] === true, 'Skip ends the scene and marks it seen');
+    await s.waitForTimeout(500);
+    check(!(await s.locator('#callout').isHidden()), 'level 1\'s one-time tip shows after the scene');
+    // Hold to fast forward (touch): replay from the Story log, hold 600ms.
+    await s.evaluate(() => window.__signalTest.story.play(['basics.start'], { replay: true, backdrop: 'town', town: [] }));
+    await s.waitForTimeout(400);
+    const cdp = await sctx.newCDPSession(s);
+    await touch(cdp, 'touchStart', 195, 400);
+    await s.waitForTimeout(2600);
+    ss = await S(s);
+    await touch(cdp, 'touchEnd', 195, 400); await s.waitForTimeout(100);
+    check(ss.line >= 2, `holding a finger down fast-forwards (line ${ss.line + 1} after 2.6s)`);
+    await s.keyboard.press('Escape'); await s.waitForTimeout(300);
+    // Replaying a beaten level plays nothing.
+    await s.evaluate(() => { const g = window.__signalTest; g.progress.stars[0] = 3; g.progress.stars[8] = 3; });
+    for (const i of [0, 8]) {
+      await s.evaluate((i) => window.__signalTest.startLevel(i), i); await s.waitForTimeout(250);
+      check(!(await S(s)).scene, `replaying beaten level ${i + 1} triggers no scene`);
+    }
+    // Level 9's mid-chapter scene on first entry.
+    await storySave(s, 8); await reload(s);
+    await s.evaluate(() => window.__signalTest.startLevel(8));
+    check(await waitScene(s, 'basics.mayor', 2000), 'entering level 9 for the first time plays "The Mayor Drops By"');
+    const fpsScene = await fps(s);
+    check(fpsScene > 55, `60fps while a scene plays (${fpsScene.toFixed(1)} fps)`);
+    await s.keyboard.press('Escape'); await s.waitForTimeout(300);
+
+    // --- Postcard after a first-time win, and it never blocks the map ---
+    await storySave(s, 1); await reload(s);
+    await winAndNext(s, 1);
+    await s.waitForSelector('.postcard', { timeout: 5000 }).catch(() => {});
+    const pc = await s.evaluate(() => { const p = document.querySelector('.postcard'); return p && { role: p.getAttribute('role'), text: p.textContent }; });
+    check(pc && pc.role === 'status' && pc.text === 'Level 2, Stone WallThe garden wall kept the signal out. Not anymore.', `first win of level 2: the postcard shows its line on the map (${pc && pc.text})`);
+    await s.screenshot({ path: `${OUT}/story-postcard-phone.png` });
+    let nb = await s.evaluate(() => { const r = document.querySelector('.map-node.arrive').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await s.touchscreen.tap(nb.x, nb.y); await s.waitForTimeout(300);
+    check((await st(s))?.index === 2, 'the next circle can be tapped while the postcard shows');
+    await winAndNext(s, 1); await s.waitForTimeout(2500);
+    check(!(await s.locator('.postcard').count()), 'a replayed win shows no postcard');
+
+    // --- Chapter close on the map after level 15 ---
+    await storySave(s, 14); await reload(s);
+    await winAndNext(s, 14);
+    await s.waitForTimeout(1600);
+    const held = await s.evaluate(() => ({ anim: window.__signalTest.mapAnim, banner: document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), pc: !!document.querySelector('.postcard') }));
+    check(held.anim && held.banner && held.pc, `after level 15 the road stops at the Quiet Hours banner (still locked) while the postcard shows (${JSON.stringify(held)})`);
+    check(await waitScene(s, 'basics.end', 5000), 'then "The Tower Stands" plays over the map');
+    await s.waitForTimeout(500);
+    const bd = await s.evaluate(() => ({ backdrop: document.querySelector('.st-backdrop').hidden, map: !document.getElementById('screen-levels').hidden }));
+    check(bd.backdrop && bd.map, 'the chapter end plays over the dimmed map');
+    for (let i = 0; i < 12 && (await S(s)).scene; i++) { await s.keyboard.press('Enter'); await s.waitForTimeout(120); }
+    await s.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+    const tc = await s.evaluate(() => { const c = document.querySelector('.story-card'); return c && { label: c.getAttribute('aria-label'), role: c.getAttribute('role'), reveal: c.querySelector('.tl.reveal')?.dataset.chapter, on: [...new Set([...c.querySelectorAll('.tl.on')].map((g) => g.dataset.chapter))], body: c.querySelector('.sc-body').textContent }; });
+    check(tc && tc.label === 'Main Street is lit again.' && tc.role === 'dialog' && tc.reveal === 'basics' && tc.on.join() === 'basics' && tc.body === 'Main Street is connected.', `the town card follows, lighting Main Street (${JSON.stringify(tc)})`);
+    await s.screenshot({ path: `${OUT}/story-towncard-phone.png` });
+    await s.touchscreen.tap(195, 300); await s.waitForTimeout(300);
+    check(await s.locator('.story-card').count() === 1, 'the town card stays up for at least 1.2s');
+    await s.waitForTimeout(1000);
+    await s.touchscreen.tap(195, 300);
+    await s.waitForSelector('.map-node.arrive[data-level="15"]', { timeout: 6000 }).catch(() => {});
+    const after15 = await s.evaluate(() => ({ banner: !document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), arrive: document.querySelector('.map-node.arrive')?.dataset.level, done: document.querySelector('.map-banner[data-chapter="0"]').classList.contains('done'), tag: document.querySelector('.map-banner[data-chapter="0"] .tag')?.textContent }));
+    sv = await saved(s);
+    check(after15.banner && after15.arrive === '15' && sv.story.seen['basics.end'] === true, `then the banner opens and the road lands on level 16 (${JSON.stringify(after15)})`);
+    check(after15.done && after15.tag === 'Connected', 'Main Street\'s banner is marked Connected');
+    // Level 16 opens with Juniper's scene, with the observatory ringed.
+    nb = await s.evaluate(() => { const r = document.querySelector('.map-node.arrive').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await s.touchscreen.tap(nb.x, nb.y);
+    check(await waitScene(s, 'quiet.start', 2000), 'tapping level 16 plays "Quiet, Please" on the board');
+    await s.keyboard.press('Escape'); await s.waitForTimeout(300);
+    // The title town lights Main Street, revealed once.
+    await s.keyboard.press('Escape'); await s.click('#pause-levels'); await s.waitForTimeout(300);
+    await s.click('#levels-back'); await s.waitForTimeout(300);
+    const tt = await s.evaluate(() => ({ on: [...document.querySelectorAll('#title-hero .tl.on')].map((g) => g.dataset.chapter), reveal: document.querySelector('#title-hero .tl.reveal')?.dataset.chapter }));
+    check(tt.on.join() === 'basics' && tt.reveal === 'basics', `the start screen town lights Main Street, with the reveal (${JSON.stringify(tt)})`);
+    await s.click('#title-levels'); await s.waitForTimeout(300); await s.click('#levels-back'); await s.waitForTimeout(300);
+    check(!(await s.evaluate(() => document.querySelector('#title-hero .tl.reveal'))), 'the reveal plays only once');
+
+    // --- Story log ---
+    await s.click('#title-levels'); await s.waitForTimeout(300);
+    await s.click('#map-story'); await s.waitForTimeout(250);
+    const log = await s.evaluate(() => ({
+      rows: document.querySelectorAll('.story-row').length, seen: document.querySelectorAll('.story-row:not(.locked)').length,
+      lockText: document.querySelector('.story-row.locked .sr-lock')?.textContent, groups: [...document.querySelectorAll('.story-list h3')].map((h) => h.textContent),
+      where: document.querySelector('.story-row[data-scene="basics.mayor"] .sr-where').textContent,
+    }));
+    check(log.rows === 19 && log.seen === 5 && log.groups.length === 9 && log.groups[0] === 'Prologue' && log.groups[8] === 'Epilogue' && log.where === 'Before level 9',
+      `the Story log lists 19 scenes by chapter, 5 seen, the rest locked ("${log.lockText}") (${JSON.stringify(log)})`);
+    await s.screenshot({ path: `${OUT}/story-log-phone.png` });
+    await s.click('.story-row[data-scene="basics.end"] .sr-read'); await s.waitForTimeout(150);
+    const tr = await s.evaluate(() => [...document.querySelectorAll('#story-transcript p')].map((p) => p.textContent));
+    const want = await s.evaluate(() => STORY.scenes.find((x) => x.id === 'basics.end').lines.map((l) => `${STORY.speakers[l.speaker].name}: ${l.text}`));
+    check(JSON.stringify(tr) === JSON.stringify(want), `Read shows the transcript, word for word (${tr.length} lines)`);
+    await s.click('#story-back'); await s.waitForTimeout(100);
+    const before = JSON.stringify(await saved(s));
+    await s.click('.story-row[data-scene="basics.mayor"] .sr-play'); await s.waitForTimeout(400);
+    ss = await S(s);
+    const town = await s.evaluate(() => !document.querySelector('.st-backdrop').hidden && !!document.querySelector('.st-backdrop .town-svg'));
+    check(ss.scene === 'basics.mayor' && town, 'Play replays the scene over the town');
+    for (let i = 0; i < 10 && (await S(s)).scene; i++) { await s.keyboard.press('Enter'); await s.waitForTimeout(100); }
+    await s.waitForTimeout(300);
+    check(JSON.stringify(await saved(s)) === before && !(await s.locator('#screen-story').isHidden()), 'a replay never changes the save, and returns to the log');
+    await s.click('#story-back'); await s.waitForTimeout(300);
+    // Banner tap replays the chapter opening.
+    await s.click('.map-banner.replay[data-chapter="0"]'); await s.waitForTimeout(400);
+    check((await S(s)).scene === 'basics.start', 'tapping an open chapter banner replays its opening');
+    await s.keyboard.press('Escape'); await s.waitForTimeout(300);
+
+    // --- Settings: story off, then no scenes; text speed instant ---
+    await storySave(s, 0, { seen: {} }); await reload(s);
+    await s.click('#title-settings'); await s.click('#story-toggle'); await s.selectOption('#story-speed', 'instant'); await s.click('#settings-back');
+    await s.click('#title-play'); await s.waitForTimeout(500);
+    sv = await saved(s);
+    check(!(await S(s)).scene && (await st(s))?.index === 0 && sv.story.seen.prologue && sv.story.seen['basics.start'] && sv.story.on === false && sv.story.speed === 'instant',
+      'with Story scenes off, Play goes straight to level 1 and the scenes still unlock in the log');
+    await sctx.close();
+
+    // --- Old saves: filled in silently, no forced scenes, one catch-up offer ---
+    {
+      const { page: o, ctx: octx } = await open(browser, 'story-oldsave', SIZES[0][1], { story: true });
+      await o.evaluate(() => { const stars = {}; for (let i = 0; i < 20; i++) stars[i] = 3; localStorage.setItem('signal-tower-v2', JSON.stringify({ stars, best: {}, sound: false, seen: {}, road: 20 })); });
+      await reload(o);
+      const prog = await o.evaluate(() => window.__signalTest.progress.story);
+      check(prog.seen.prologue && prog.seen['basics.end'] && prog.seen['quiet.end'] && prog.seen['busy.start'] && !prog.seen['busy.end'] && !prog.offered && prog.townShown.join() === 'basics,quiet',
+        `an old save (20 levels) is filled in silently: past scenes seen, town lit to chapter 2 (${Object.keys(prog.seen).length} seen)`);
+      check((await litLayers(o, '#title-hero')).join() === 'basics,quiet' && !(await o.evaluate(() => document.querySelector('#title-hero .tl.reveal'))), 'its start screen already shows Main Street and the observatory lit, with no reveal');
+      await o.click('#title-play'); await o.waitForTimeout(600);
+      check(!(await S(o)).scene && (await st(o))?.index === 20, 'Continue goes straight into level 21 with no scene');
+      await o.keyboard.press('Escape'); await o.click('#pause-levels'); await o.waitForTimeout(500);
+      const cu = await o.evaluate(() => { const c = document.querySelector('.story-card'); return c && { label: c.getAttribute('aria-label'), buttons: [...c.querySelectorAll('button')].map((b) => b.textContent) }; });
+      check(cu && cu.buttons.join() === 'Story so far (about 2 min),Later', `the first map visit offers the story so far, with a Later button (${JSON.stringify(cu)})`);
+      await o.waitForTimeout(400);
+      await o.screenshot({ path: `${OUT}/story-catchup-desktop.png` });
+      await o.click('.story-card button:nth-child(2)'); await o.waitForTimeout(400);
+      check(!(await S(o)).scene && !(await o.locator('.story-card').count()) && (await saved(o)).story.offered === true, 'Later closes it, plays nothing, and is remembered');
+      await o.click('#levels-back'); await o.click('#title-levels'); await o.waitForTimeout(500);
+      check(!(await o.locator('.story-card').count()), 'the offer never comes back');
+      // "Story so far" plays the prologue, then each finished chapter's close, as one sequence.
+      await o.evaluate(() => { const p = JSON.parse(localStorage.getItem('signal-tower-v2')); p.story.offered = false; localStorage.setItem('signal-tower-v2', JSON.stringify(p)); });
+      await reload(o); await o.click('#title-levels'); await o.waitForTimeout(500);
+      await o.click('.story-card .btn.primary'); await o.waitForTimeout(400);
+      const seq = [(await S(o)).scene];
+      for (let i = 0; i < 40 && (await S(o)).scene; i++) { await o.keyboard.press('Enter'); await o.keyboard.press('Enter'); await o.waitForTimeout(60); const sc = (await S(o)).scene; if (sc && sc !== seq[seq.length - 1]) seq.push(sc); }
+      check(seq.join() === 'prologue,basics.end,quiet.end', `"Story so far" plays the prologue then each finished chapter's close (${seq.join(', ')})`);
+      // Skip ends the whole sequence.
+      await o.evaluate(() => { const p = JSON.parse(localStorage.getItem('signal-tower-v2')); p.story.offered = false; localStorage.setItem('signal-tower-v2', JSON.stringify(p)); });
+      await reload(o); await o.click('#title-levels'); await o.waitForTimeout(500);
+      await o.click('.story-card .btn.primary'); await o.waitForTimeout(400);
+      await o.click('.st-skip'); await o.waitForTimeout(400);
+      check(!(await S(o)).scene, 'Skip ends the whole "story so far" sequence');
+      // A finished old save: only the offer; the epilogue is in the log.
+      await o.evaluate(() => { const stars = {}; for (let i = 0; i < 38; i++) stars[i] = 3; localStorage.setItem('signal-tower-v2', JSON.stringify({ stars, best: {}, sound: false, seen: {}, road: 38 })); });
+      await reload(o);
+      check((await litLayers(o, '#title-hero')).length === 7, 'a finished old save shows the whole town lit');
+      await o.click('#title-levels'); await o.waitForTimeout(500);
+      check(await o.locator('.story-card').count() === 1 && !(await S(o)).scene, 'and only the catch-up offer on the map');
+      await octx.close();
+    }
+
+    // --- The last chapter: closing scene, town card, epilogue, ending card ---
+    {
+      const { page: e, ctx: ectx } = await open(browser, 'story-ending', SIZES[0][1], { story: true });
+      await storySave(e, 37); await reload(e);
+      await winAndNext(e, 37);
+      check(await waitScene(e, 'mixed.end', 9000), 'after level 38: "Live from the Hill" plays on the map');
+      await e.click('.st-skip');
+      await e.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+      await e.waitForTimeout(1300); await e.mouse.click(640, 400);
+      check(await waitScene(e, 'epilogue', 3000), 'then the town card, then the epilogue');
+      await e.waitForTimeout(600);
+      const ep = await e.evaluate(() => ({ lit: [...new Set([...document.querySelectorAll('.st-backdrop .tl.on')].map((g) => g.dataset.chapter))].length, settle: document.querySelector('.st-backdrop').classList.contains('settle') }));
+      check(ep.lit === 7 && ep.settle, `the epilogue plays over the fully lit town (${JSON.stringify(ep)})`);
+      await e.screenshot({ path: `${OUT}/story-epilogue-desktop.png` });
+      await e.click('.st-skip');
+      await e.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+      const end = await e.evaluate(() => { const c = document.querySelector('.story-card'); return c && { title: c.querySelector('.sc-title').textContent, body: c.querySelector('.sc-body').textContent, buttons: [...c.querySelectorAll('button')].map((b) => b.textContent) }; });
+      check(end && end.title === 'Wren Hollow is on air.' && end.body === 'All 38 levels connected.' && end.buttons.join() === 'Story,Level map', `the ending card: ${JSON.stringify(end)}`);
+      await e.waitForTimeout(500);
+      await e.screenshot({ path: `${OUT}/story-ending-desktop.png` });
+      await e.click('.story-card .btn.primary'); await e.waitForTimeout(400);
+      const sv2 = await saved(e);
+      check(sv2.story.seen['mixed.end'] && sv2.story.seen.epilogue && !(await e.locator('#screen-levels').isHidden()), 'Level map closes it; the closing and epilogue are seen');
+      await ectx.close();
+    }
+
+    // --- Reduced motion: whole lines at once, still town ---
+    {
+      const { page: r, ctx: rctx } = await open(browser, 'story-reduced', { ...SIZES[1][1], reducedMotion: 'reduce' }, { story: true });
+      await r.click('#title-play'); await r.waitForTimeout(300);
+      const rs = await S(r);
+      const still = await r.evaluate(() => getComputedStyle(document.querySelector('.st-backdrop .waves circle')).animationName);
+      check(rs.scene === 'prologue' && rs.typed, 'reduced motion: the whole line shows at once (no typing)');
+      check(still === 'none', `reduced motion: the town's animations are off (${still})`);
+      await rctx.close();
+    }
+
+    // --- Screenshots at three sizes: dialogue card, chapter end on the map, postcard, start-screen town at 0, 3 and 7 chapters ---
+    for (const [label, opts] of SIZES) {
+      const { page: p, ctx: pctx } = await open(browser, `story-shots-${label}`, opts, { story: true });
+      for (const n of [0, 23, 38]) {
+        await storySave(p, n); await reload(p);
+        const lit = await litLayers(p, '#title-hero');
+        const expect = { 0: 0, 23: 3, 38: 7 }[n];
+        check(lit.length === expect, `${label}: start screen town with ${n} levels beaten lights ${expect} landmarks (${lit.join(', ') || 'none'})`);
+        await p.waitForTimeout(400);
+        await p.screenshot({ path: `${OUT}/story-town-${expect}-${label}.png` });
+      }
+      // Dialogue card with a focus ring (level 16, the observatory).
+      await storySave(p, 15); await reload(p);
+      await p.evaluate(() => window.__signalTest.startLevel(15));
+      await waitScene(p, 'quiet.start', 2000);
+      await p.waitForTimeout(400); await finishLine(p); await p.waitForTimeout(300);
+      const lay = await p.evaluate(() => {
+        const c = document.querySelector('.st-card').getBoundingClientRect(), t = document.querySelector('.st-text');
+        const rs = [...document.querySelectorAll('.st-ring')].map((x) => x.getBoundingClientRect());
+        return { inView: c.left >= 0 && c.right <= innerWidth && c.top >= 0 && c.bottom <= innerHeight, h: c.height, fits: t.scrollHeight <= t.clientHeight + 1,
+          under: rs.filter((r) => r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top).length, rings: rs.length };
+      });
+      check(lay.inView && lay.fits && lay.under === 0 && lay.rings >= 2, `${label}: the card is on screen, its text fits and no focus ring is under it (${JSON.stringify(lay)})`);
+      await p.screenshot({ path: `${OUT}/story-card-${label}.png` });
+      const h0 = lay.h;
+      await p.keyboard.press('Enter'); await p.waitForTimeout(200); await finishLine(p); await p.waitForTimeout(250);
+      const h1 = await p.evaluate(() => document.querySelector('.st-card').getBoundingClientRect().height);
+      check(Math.abs(h1 - h0) < 1, `${label}: the card keeps its height between lines (${h0} and ${h1})`);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+      // Postcard.
+      await storySave(p, 2); await reload(p);
+      await winAndNext(p, 2);
+      await p.waitForSelector('.postcard', { timeout: 5000 }).catch(() => {});
+      await p.waitForTimeout(700);
+      const pcl = await p.evaluate(() => {
+        const r = document.querySelector('.postcard')?.getBoundingClientRect(), cta = document.getElementById('map-play').getBoundingClientRect();
+        const n = document.querySelector('.map-node[data-level="3"]').getBoundingClientRect();
+        return r && { inView: r.left >= 0 && r.right <= innerWidth && r.top >= 0, overCta: r.bottom > cta.top, nodeClear: n.bottom <= r.top || n.top >= r.bottom || n.right <= r.left || n.left >= r.right };
+      });
+      check(pcl && pcl.inView && !pcl.overCta && pcl.nodeClear, `${label}: the postcard sits on screen above the Play button and clear of the next circle (${JSON.stringify(pcl)})`);
+      await p.screenshot({ path: `${OUT}/story-postcard-${label}.png` });
+      // Chapter end on the map.
+      await storySave(p, 18); await reload(p);
+      await winAndNext(p, 18);
+      await waitScene(p, 'quiet.end', 9000);
+      await p.waitForTimeout(500); await finishLine(p); await p.waitForTimeout(250);
+      await p.screenshot({ path: `${OUT}/story-chapter-end-${label}.png` });
+      await p.click('.st-skip');
+      await p.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+      await p.waitForTimeout(1400);
+      const tcl = await p.evaluate(() => { const r = document.querySelector('.story-card').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight; });
+      check(tcl, `${label}: the town card fits on screen`);
+      await p.screenshot({ path: `${OUT}/story-towncard-${label}.png` });
+      await pctx.close();
+    }
   }
 
   // Regression: damaged saves fall back safely.

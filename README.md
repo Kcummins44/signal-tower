@@ -6,6 +6,52 @@ A browser puzzle game: build radio towers so that every house in town gets signa
 
 Plain HTML, CSS and JavaScript with no build step and no runtime dependencies. All art is drawn with canvas and SVG code, and all sound is synthesized with WebAudio.
 
+## Story: "The Keeper of Wren Hollow"
+
+After a storm knocks down the old radio tower, Nell, the retired signal keeper, teaches her apprentice Sam (the player) to put Wren Hollow back on air in time for Starfall Night. The cast also includes Juniper the astronomer and Otto the mayor. The story is Iris's (`design/story-spec.md`). Its text and art come only from her files: `design/story-data.json`, `design/portrait-*.svg` and `design/town-hero.svg`. `node tools/build-story.js` copies them into `js/story.js`, so nothing is retyped. Line ids are kept for later localisation.
+
+**When things play** (each scene plays once, automatically):
+- The **prologue** plays the first time a fresh save taps Play, over the town at night.
+- A **chapter's opening** plays the first time you enter the chapter's first level (1, 16, 20, 24, 28, 32 and 36), over the dimmed board, before the level's tip. Focus rings mark the tiles the line talks about.
+- **Mid-chapter scenes** play before levels 9, 30 and 37.
+- After a **first-time win**, the map shows a **postcard** with that level's line once the road has drawn. It goes after 4 seconds or a tap, and never blocks the next circle.
+- After a **chapter's last level**, the road stops at the next chapter's banner. Then come the postcard, the chapter's closing scene over the dimmed map, and a **town card** as a new landmark lights up. The banner then opens and the road goes on to the next circle.
+- After level 38 come the closing scene, the town card, the **epilogue** over the fully lit town, and an ending card with **Story** and **Level map** buttons.
+- Replaying a level never replays its scenes or postcard.
+
+**Controls in a scene:**
+- **Tap** finishes the line, then goes to the next.
+- **Hold** (400ms) fast-forwards while held.
+- **Fast forward** button: types 4x and moves on by itself.
+- **Skip** ends the scene and marks it seen.
+- **Keyboard:** Enter or Space for next, Esc to skip, F for fast forward, hold Space to fast-forward. The game's keys are ignored while a scene plays.
+
+**Start screen:** the town hero lights one landmark per finished chapter: Main Street, the observatory, the office block, the dish farm, the station and the Glass Lanes. Bunting and meteors appear after chapter 7. A newly lit landmark brightens in once.
+
+**Level map:**
+- Finished chapters' banners say **Connected**.
+- Tapping an open banner replays its chapter's opening.
+- A beaten circle's name pill shows its level line on hover or focus.
+
+**Story log:** the book button on the map, or **Story** in the pause menu.
+- Scenes are grouped by chapter.
+- Seen scenes have **Play** (replays over the town and never changes the save) and **Read** (a transcript).
+- Locked scenes say which level unlocks them.
+
+**Settings:**
+- **Story scenes** On/Off. Off means nothing plays by itself, but the town still lights and the log still fills.
+- **Text speed:** Normal, Fast or Instant.
+
+**Saves:**
+- The save gains a `story` field: `seen`, `townShown`, `offered`, `on` and `speed`.
+- A save from before the story is filled in silently from its progress. Scenes it is past count as seen, and its town is lit. No scene is forced.
+- On the first map visit it gets a one-time card: **Story so far (about 2 min)**, which plays the prologue and each finished chapter's closing scene, or **Later**.
+
+**Accessibility:**
+- The scene is a modal dialog labelled with the scene title. Focus moves into it and back out.
+- A polite live region reads each whole line once, with the speaker's name. The typed text is hidden from screen readers.
+- With reduced motion, lines appear whole, nothing slides and the town is still.
+
 ## Rules
 
 - Drag a tower from the tray at the bottom onto a grass tile or a hill, or tap a tile to build the selected tower type.
@@ -78,7 +124,11 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 | `js/art.js` | Canvas drawing for grass, hills, walls, trees, houses, towers, dishes, observatories, office blocks, the station and panels |
 | `js/board.js` | Board renderer: cached terrain, coverage overlay and blocked-tile preview hint, masked radio waves (circles, cones, bounces), house and relay links, previews |
 | `js/audio.js` | WebAudio sound effects |
-| `js/game.js` | Screens (start screen, road-path level map and its road animation), tower tray and drag and drop, input (pointer and keyboard), undo, hints, stars, chapters, callouts, saved progress |
+| `js/story.js` | **Generated** by `tools/build-story.js` from Iris's design files: `window.STORY` (scenes, lines, level lines, town captions) and `window.STORY_ART` (portraits, town hero) |
+| `js/story-ui.js` | Story presentation: dialogue scene player, postcard, town, catch-up and ending cards, town art, Story log rendering |
+| `css/story.css` | Story styles (card sizes for phone, landscape and desktop; town layers; reduced motion) |
+| `tools/build-story.js` | Builds `js/story.js`; `--check` fails if it is stale |
+| `js/game.js` | Story triggers (when scenes, postcards and town cards play), screens (start screen, road-path level map and its road animation), tower tray and drag and drop, input (pointer and keyboard), undo, hints, stars, chapters, callouts, saved progress |
 | `js/levels.js` | **Generated.** Level data with tower budgets, star thresholds and hint solutions |
 | `tools/levels-src.js` | Level source maps. Edit these |
 | `tools/solve.js` | Solver. Proves every level is solvable and writes `js/levels.js` |
@@ -92,6 +142,8 @@ You unlock the next level by finishing the current one. Stars, best move counts,
 1. Edit `tools/levels-src.js`. Map legend: `.` grass, `H` house, `#` wall, `^` hill, `T` tree, `Q` observatory, `B` office block, `S` station, `/` and `L` panels. Optional fields: `chapter`, `dishes` (dishes offered; the standard tower budget is then the smallest that still solves the level) and `callout` (a one-time tip).
 2. Run `node tools/solve.js`. It searches every tower placement (types and dish facings included), prints each level's minimum tower count, number of solutions and solve time, and rewrites `js/levels.js`. It exits non-zero if any level is unsolvable. `--md` also prints a Markdown table. Relay levels use a different search: cover every house first, then grow the network outward from its live part, with a breadth-first bound that prunes chains that can't be finished. The whole set solves in about 4 seconds.
 3. Run `node tools/solve.js --check` before committing. It fails if `js/levels.js` is stale.
+
+Story text and art: edit Iris's files in `design/`, then run `node tools/build-story.js` (and `--check` before committing). The logic tests check the data: line lengths, speakers, triggers, unique ids, plain ASCII, and that `js/story.js` matches `design/story-data.json` exactly.
 
 To find new puzzles, run `node tools/generate.js` with no arguments to see its usage.
 
@@ -112,6 +164,17 @@ The browser test does the following:
 - Checks that turning a dish is free, the keyboard keys, undo (including moves and turns), reset, locked levels and chapters, saved progress (including an old 15-level save) and the mute setting.
 - Checks the start screen at three sizes (fits, nothing overlaps, copy for fresh, mid and finished saves), the level map (locked, current, beaten and 3-star nodes, scroll position, keyboard and click navigation, the locked-level toast), the road fill (draws once after a first clear, opens a chapter, never replays, tap to skip, old saves), that wall-blocked tiles are never drawn dark, that pressing R just after a win never lets the win screen pop over the fresh level, and that a dish's cone stops at the board edge.
 - Checks the after-win flow: Next level goes by the map (road, highlight, focus, one tap or Enter to enter, skip on tap, replay of a beaten level, reduced motion, a queued map event), that a double tap or double click on Play, Replay or Next never builds a stray tower or skips the road, that rotating during the road animation relays the map out, and that a damaged `road` count is clamped.
+- Checks the story with scenes on:
+  - the prologue on a fresh save, and the chapter openings with focus rings that the card never covers
+  - Enter, Esc, F, hold to fast-forward, Skip and fast forward
+  - no board input or game keys during a scene
+  - postcards, and the chapter close after level 15: road paused at the banner, scene over the map, town card, banner opening
+  - the Story log (transcripts word for word, replays that never change the save) and banner replays
+  - Story scenes off
+  - old saves: filled in silently, no forced scenes, the one-time offer with Later, and "story so far" with Skip
+  - the ending after level 38, reduced motion, and 60fps during a scene
+  - screenshots (`story-*.png`) of the dialogue card, chapter end, postcard, town card and the start-screen town at 0, 3 and 7 chapters, at three sizes
+  - Other tests start with scenes off (a test-only flag).
 - Requires 60fps (including mid-drag), checks the tray never overlaps the board, and fails on any console error or warning.
 - Saves screenshots of each mechanic and of drags, and (`polish-*.png`) of the start screen, the level map on a fresh and a mid-progress save and a level with wall-blocked tiles, at 1280x800, 390x844 and 844x390.
 
