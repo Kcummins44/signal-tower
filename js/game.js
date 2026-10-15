@@ -238,6 +238,7 @@
     const out = { before: [], hold: null, holdAt: -1, after: [] };
     const pc = lastFirstWin;
     lastFirstWin = null;
+    postcardReserve = pc !== null && storyOn() ? (landscape() ? 84 : 100) : 0;
     const ends = STORY_CHAPTERS.filter((c) => chapterDone(c) && !progress.story.seen[endScene(c).id]);
     if (!storyOn()) {
       ends.forEach((c) => markSeen(endScene(c).id));
@@ -1445,11 +1446,14 @@
   }
 
   // The scroll area's visible band: minus the CTA bar at the bottom.
+  // While a postcard is due, its room above the Play button counts as hidden,
+  // so the road scrolls the next circle clear of it as it draws (no late jump).
+  let postcardReserve = 0;
   function mapBand() {
     const sc = $('map-scroll');
     const cta = $('map-cta');
     const ctaH = cta.hidden ? 0 : cta.getBoundingClientRect().height;
-    return { sc, h: Math.max(80, sc.clientHeight - ctaH) };
+    return { sc, h: Math.max(80, sc.clientHeight - ctaH - postcardReserve) };
   }
   function scrollMapTo(y, at, smooth, maxTop = Infinity) {
     const { sc, h } = mapBand();

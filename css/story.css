@@ -70,7 +70,7 @@
 @keyframes st-ring-in { from { transform: scale(1.15); opacity: 0; } }
 @keyframes st-ring-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-.st-top { position: absolute; left: 0; right: 0; top: 0; height: calc(68px + var(--safe-t)); padding: var(--safe-t) 132px 0 20px; display: flex; align-items: center; background: rgba(27, 35, 45, 0.97); border-bottom: 1px solid var(--line); z-index: 1; }
+.st-top { position: absolute; left: 0; right: 0; top: 0; height: calc(68px + var(--safe-t)); padding: var(--safe-t) 132px 0 20px; display: flex; align-items: center; background: var(--bg); border-bottom: 1px solid var(--line); z-index: 1; }
 .st-context { font-size: 0.9375rem; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-controls { position: absolute; top: calc(12px + var(--safe-t)); right: 16px; display: flex; gap: 10px; z-index: 2; }
 .st-controls button {

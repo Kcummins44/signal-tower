@@ -1357,7 +1357,10 @@ async function playLevel(page, sol, useDrag = true) {
       await reload(p);
       await win(p, 36); await p.click('#win-next');
       await p.waitForSelector('.map-node.arrive[data-level="37"]', { timeout: 6000 }).catch(() => {});
-      await p.waitForTimeout(400);
+      const y0 = await p.evaluate(() => document.querySelector('.map-node[data-level="37"]').getBoundingClientRect().top);
+      await p.waitForTimeout(600);
+      const y1 = await p.evaluate(() => document.querySelector('.map-node[data-level="37"]').getBoundingClientRect().top);
+      check(Math.abs(y1 - y0) < 2, `${label}: the circle stays put once it lands (moved ${Math.round(y1 - y0)}px)`);
       const hit = await p.evaluate(() => {
         const n = document.querySelector('.map-node[data-level="37"]'), r = n.getBoundingClientRect(), pc = document.querySelector('.postcard');
         const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
