@@ -178,14 +178,14 @@
   const levelLine = (i) => STORY.levelLines[String(i + 1)];
   function showPostcard(i, ms, onGone) {
     Story.postcard({ container: $('screen-levels'), level: i + 1, name: LEVELS[i].name, text: levelLine(i), ms, onGone });
-    // The postcard never hides the next circle: scroll the circle above it
-    // (measured once the postcard has risen into place).
-    setTimeout(() => {
-      const pc = $('screen-levels').querySelector('.postcard'), node = mapNodeEl(Math.min(i + 1, LEVELS.length - 1));
-      if (!pc || !node) return;
-      const over = node.getBoundingClientRect().bottom + 12 - pc.getBoundingClientRect().top;
-      if (over > 0) { const sc = $('map-scroll'); sc.scrollTo({ top: sc.scrollTop + over, behavior: reducedMotion() ? 'auto' : 'smooth' }); }
-    }, reducedMotion() ? 0 : 240);
+    // The postcard never hides the next circle: the map scrolls the circle
+    // above the postcard's resting place while the postcard rises (the track
+    // has room below the last circle for this). Taps pass through it anyway.
+    const pc = $('screen-levels').querySelector('.postcard'), node = mapNodeEl(Math.min(i + 1, LEVELS.length - 1));
+    if (!pc || !node) return;
+    const rise = new DOMMatrix(getComputedStyle(pc).transform).m42;
+    const over = node.getBoundingClientRect().bottom + 12 - (pc.getBoundingClientRect().top - rise);
+    if (over > 0) { const sc = $('map-scroll'); sc.scrollTo({ top: sc.scrollTop + over, behavior: reducedMotion() ? 'auto' : 'smooth' }); }
   }
   function townCard(c, next) {
     const t = STORY.town.find((x) => x.chapter === c);
@@ -212,7 +212,7 @@
   function chapterClose(c, pcLevel, done) {
     const steps = [];
     if (pcLevel !== null) steps.push((next) => showPostcard(pcLevel, 2500, next));
-    steps.push((next) => Story.play([endScene(c).id], { backdrop: 'map', onDone: next }));
+    steps.push((next) => Story.play([endScene(c).id], { backdrop: 'map', context: 'Level map', onDone: next }));
     steps.push((next) => townCard(c, next));
     if (c === STORY_CHAPTERS[STORY_CHAPTERS.length - 1]) {
       if (!progress.story.seen[EPILOGUE]) steps.push((next) => Story.play([EPILOGUE], { onDone: next }));
@@ -316,7 +316,7 @@
     // is hidden and not drawn.
     if (!inGame) { state = null; $('toast').hidden = true; }
     if (name) { cancelDrag(true); closeCallout(); }
-    if (name !== 'levels') stopMapAnim();
+    if (name !== 'levels') { stopMapAnim(); Story.dismissPostcard(true); mapBusy = false; }
     if (name === 'title') updateTitle();
     requestAnimationFrame(fitBoard);
     const focusTarget = { title: 'title-play', levels: null, settings: 'settings-back', pause: 'pause-resume', win: 'win-next', story: 'story-back' }[name];
@@ -366,7 +366,8 @@
     };
     const intro = introScenes(index);
     // The scene waits two frames so the board has its size for focus rings.
-    if (intro.length && storyOn()) requestAnimationFrame(() => requestAnimationFrame(() => { if (state && state.attempt === run) playScenes(intro, begin); }));
+    lastAfter = null;
+    if (intro.length && storyOn()) requestAnimationFrame(() => requestAnimationFrame(() => { if (state && state.attempt === run) playScenes(intro, begin, { context: `Level ${index + 1}, ${level.name}` }); }));
     else { intro.forEach(markSeen); begin(); }
   }
 
@@ -1032,6 +1033,11 @@
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (screen === 'pause' && (e.key === 'Escape' || e.key === 'p')) { resume(); e.preventDefault(); return; }
+    if (e.key === 'Escape' && !Story.active) {
+      const back = { settings: 'settings-back', story: 'story-back', win: 'win-levels' }[screen];
+      // stopImmediatePropagation: the map's own Esc must not also act on this key.
+      if (back) { e.preventDefault(); e.stopImmediatePropagation(); if (screen === 'win') { Audio.play('click'); openLevels({ after: state.index }); } else $(back).click(); return; }
+    }
     if (screen || !state) return;
     const k = e.key;
     if (k === 'Escape' && (drag || carry)) {
@@ -1112,12 +1118,15 @@
 
   on('title-play', clicky(() => {
     if (allBeaten()) { openLevels(); return; }
+    // A chapter whose close hasn't played yet (the map was left early): the
+    // map plays it first, so the story never runs out of order.
+    if (storyOn() && STORY_CHAPTERS.some((c) => chapterDone(c) && !progress.story.seen[endScene(c).id])) { openLevels(); return; }
     const go = () => startLevel(firstUnfinished());
     // A fresh save hears the prologue first.
     if (beatenCount() === 0 && !progress.story.seen[PROLOGUE]) playScenes([PROLOGUE], go);
     else go();
   }));
-  on('map-story', clicky(() => openStoryLog('levels')));
+  on('map-story', () => { if (mapTapEaten()) return; Audio.play('click'); openStoryLog('levels'); });
   on('pause-story', clicky(() => openStoryLog('pause')));
   on('story-back', clicky(() => {
     if (!$('story-transcript').hidden) {
@@ -1125,15 +1134,15 @@
       $('story-list').hidden = false;
       return;
     }
-    if (storyReturn === 'levels') openLevels(); else showScreen(storyReturn);
+    if (storyReturn === 'levels') openLevels({ after: lastAfter }); else showScreen(storyReturn);
   }));
   $('story-toggle').addEventListener('change', (e) => { progress.story.on = e.target.checked; save(); });
   $('story-speed').addEventListener('change', (e) => { if (SPEEDS.includes(e.target.value)) { progress.story.speed = e.target.value; save(); } });
   on('title-sound', () => setSound(!progress.sound, true));
-  on('map-play', clicky(() => { const c = currentLevel(); if (c >= 0) startLevel(c); }));
+  on('map-play', () => { if (mapTapEaten()) return; Audio.play('click'); const c = currentLevel(); if (c >= 0) startLevel(c); });
   on('title-levels', clicky(openLevels));
   on('title-settings', clicky(() => { settingsReturn = 'title'; openSettings(); }));
-  on('levels-back', clicky(() => showScreen('title')));
+  on('levels-back', () => { if (mapTapEaten()) return; Audio.play('click'); showScreen('title'); });
   on('settings-back', clicky(() => showScreen(settingsReturn)));
 
   on('pause-resume', resume);
@@ -1261,7 +1270,8 @@
       y = cy - SP + 76;
     });
     const last = nodes[nodes.length - 1].y;
-    return { COL, CX, A, SP, nodes, banners, height: last + 30 + 140 };
+    // 140 for the Play button, plus room to lift the last circle above a postcard.
+    return { COL, CX, A, SP, nodes, banners, height: last + 30 + 140 + 110 };
   }
 
   // What the map shows. Segment k joins level k to level k + 1.
@@ -1349,7 +1359,14 @@
     setBannerOpen(el, b, open, stars, idx.length);
     if (chapterDone(ch.id)) { el.classList.add('done'); el.querySelector('.n').insertAdjacentHTML('afterend', '<span class="tag">Connected</span>'); }
     // A tap on an open chapter's banner replays its opening scene.
-    if (open && progress.story.seen[startScene(ch.id).id]) { el.classList.add('replay'); el.dataset.scene = startScene(ch.id).id; el.title = 'Replay the chapter opening'; }
+    if (open && progress.story.seen[startScene(ch.id).id]) {
+      el.classList.add('replay');
+      el.dataset.scene = startScene(ch.id).id;
+      el.title = 'Replay the chapter opening';
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', `${el.getAttribute('aria-label')}. Replay the chapter opening`);
+    }
     return el;
   }
   function setBannerOpen(el, b, open, stars, count) {
@@ -1446,13 +1463,25 @@
   function openLevels({ after = null } = {}) {
     stopMapAnim();
     mapArrive = null;
+    lastAfter = after;
     const view = mapView();
+    const story = mapStory();
     // The road counter is saved as soon as the map opens, so the animation
     // plays once even if the map is left part way through.
     const pendingAnim = view.animate.length > 0;
     if (view.pending.length || progress.road < view.frontier) { progress.road = Math.max(progress.road, view.frontier); save(); }
     showScreen('levels');
-    renderMap(view, pendingAnim);
+    // A chapter close with no road to draw (reduced motion): keep the next
+    // chapter locked until the close is over, then show the opened map.
+    const holdLocked = story.hold && !pendingAnim && story.holdAt + 1 < LEVELS.length;
+    renderMap(holdLocked ? { ...view, animate: [story.holdAt] } : view, pendingAnim || holdLocked);
+    if (holdLocked) {
+      const hold = story.hold;
+      story.hold = (next) => hold(() => {
+        if (screen === 'levels') { const sc = $('map-scroll'), top = sc.scrollTop; renderMap(view, false); sc.scrollTop = top; }
+        next();
+      });
+    }
     let focusNode = view.cur >= 0 ? view.cur : LEVELS.length - 1;
     if (after !== null) focusNode = pendingAnim ? view.animate[view.animate.length - 1] + 1 : Math.min(after + 1, LEVELS.length - 1);
     if (pendingAnim) scrollMapTo(map.nodes[view.animate[0]].y, 0.35);
@@ -1464,7 +1493,7 @@
     }
     $('map-bar').classList.toggle('scrolled', $('map-scroll').scrollTop > 4);
     if (!pendingAnim && view.pending.length && reducedMotion()) $('map-track').classList.add('crossfade');
-    runMapEvents(view, focusNode, after !== null, mapStory());
+    runMapEvents(view, focusNode, after !== null, story);
   }
 
   // ---------- Map events ----------
@@ -1473,6 +1502,16 @@
   // step with queueMapEvent(fn) before the map opens; fn(done) plays it and
   // calls done() when it ends. When the queue is empty the map lands on
   // `focusNode`: focused, and highlighted when `arrive` is set.
+  // While map events play (the road, a chapter's close), a tap or key on the
+  // map fast-forwards the current step instead of leaving: the remaining
+  // steps still run in order, so the story is never skipped or reordered.
+  let mapBusy = false;
+  function mapFastForward() {
+    if (mapAnim && !mapAnim.held) { skipMapAnim(); return; }
+    if (Story.state.postcard) Story.dismissPostcard(false);
+  }
+  const mapTapEaten = () => mapBusy || performance.now() - skippedAt < 500;
+  let lastAfter = null; // the level whose win opened the map (to restore its landing)
   const queuedMapEvents = [];
   function queueMapEvent(fn) { queuedMapEvents.push(fn); }
   // `story` (from mapStory): steps before the road, a `hold` that the road
@@ -1486,11 +1525,12 @@
     if (hold) steps.push((done) => (holdUsed ? done() : hold(done)));
     steps.push(...queuedMapEvents.splice(0));
     steps.push(...(story.after || []));
+    mapBusy = true;
     const next = () => {
-      if (screen !== 'levels') return;
+      if (screen !== 'levels') { mapBusy = false; return; }
       const step = steps.shift();
       if (step) step(next);
-      else arriveAt(focusNode, arrive);
+      else { mapBusy = false; arriveAt(focusNode, arrive); }
     };
     next();
   }
@@ -1510,9 +1550,9 @@
 
   $('map-track').addEventListener('click', (e) => {
     const banner = e.target.closest('.map-banner.replay');
-    if (banner && !mapAnim && !inputGuarded()) { Audio.play('click'); Story.play([banner.dataset.scene], { replay: true, backdrop: 'town', town: townOn() }); return; }
+    if (banner && !mapTapEaten() && !inputGuarded()) { Audio.play('click'); Story.play([banner.dataset.scene], { replay: true, backdrop: 'town', town: townOn() }); return; }
     const node = e.target.closest('.map-node');
-    if (!node || mapAnim || performance.now() - skippedAt < 500 || inputGuarded()) return;
+    if (!node || mapAnim || mapTapEaten() || inputGuarded()) return;
     const i = Number(node.dataset.level);
     if (node.classList.contains('locked')) {
       Audio.play('invalid');
@@ -1538,9 +1578,12 @@
   // current node, Esc goes back. Enter and Space press the focused node.
   document.addEventListener('keydown', (e) => {
     if (screen !== 'levels' || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (mapAnim) { skipMapAnim(); e.preventDefault(); return; }
     if (Story.active) return;
+    if (mapBusy) { mapFastForward(); e.preventDefault(); return; }
     const k = e.key;
+    // Enter or Space on a chapter banner replays its opening.
+    const fb = document.activeElement && document.activeElement.closest && document.activeElement.closest('.map-banner.replay');
+    if (fb && (k === 'Enter' || k === ' ')) { e.preventDefault(); fb.click(); return; }
     if (k === 'Escape') { e.preventDefault(); Audio.play('click'); showScreen('title'); return; }
     const focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.map-node');
     const at = focused ? Number(focused.dataset.level) : -1;
@@ -1572,7 +1615,7 @@
   function startMapAnim(view, onEnd, hold = null, holdAt = -1) {
     const timers = [];
     let raf = 0;
-    const anim = { view, timers, done: false, resized: false, onEnd, hold, held: false, heldDone: false, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
+    const anim = { view, timers, done: false, resized: false, onEnd, hold, holdAt, held: false, heldDone: false, stop: () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
     mapAnim = anim;
     const at = (ms, fn) => timers.push(setTimeout(() => { if (mapAnim === anim) fn(); }, ms));
     const track = $('map-track');
@@ -1679,12 +1722,21 @@
   // Skip: jump straight to the end state.
   function skipMapAnim() {
     if (!mapAnim || mapAnim.held) return; // the road waits at a banner while a chapter closes
-    const { view, onEnd, hold } = mapAnim;
+    const { view, onEnd, hold, holdAt } = mapAnim;
     stopMapAnim();
     const sc = $('map-scroll'), top = sc.scrollTop;
-    renderMap(view, false);
+    // With a chapter close still to play, the road jumps to the locked banner
+    // and the next chapter opens only after the close.
+    const holdHere = hold && view.animate.includes(holdAt);
+    renderMap(holdHere ? { ...view, animate: [holdAt] } : view, holdHere);
     sc.scrollTop = top;
-    if (hold) { hold(() => { if (onEnd) onEnd(); }); return; }
+    if (hold) {
+      hold(() => {
+        if (holdHere && screen === 'levels') { const t = sc.scrollTop; renderMap(view, false); sc.scrollTop = t; }
+        if (onEnd) onEnd();
+      });
+      return;
+    }
     if (onEnd) { onEnd(); return; }
     const el = mapNodeEl(view.cur >= 0 ? view.cur : LEVELS.length - 1);
     if (el) el.focus({ preventScroll: true });
@@ -1692,11 +1744,13 @@
   // A tap that skips must not also press the node under it.
   let skippedAt = -1e9;
   // The second tap of a double tap on Next level doesn't skip the road.
+  // A tap on the map while events play fast-forwards them (and does nothing
+  // else). Otherwise a tap anywhere dismisses the postcard and goes through.
   $('screen-levels').addEventListener('pointerdown', (e) => {
-    if (!mapAnim || (e.target.closest && e.target.closest('.postcard'))) return;
+    if (!mapBusy) { if (Story.state.postcard) Story.dismissPostcard(false); return; }
     skippedAt = performance.now();
     e.stopPropagation();
-    if (!inputGuarded(e)) skipMapAnim();
+    if (!inputGuarded(e)) mapFastForward();
   }, true);
 
   // A resize rebuilds the map (positions depend on the window size). One

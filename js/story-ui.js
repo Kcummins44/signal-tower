@@ -19,12 +19,35 @@
   }
   // The town hero with the given chapters lit. `reveal` (a chapter id) plays
   // its brighten-in; `slice` fills the box (backdrops) instead of fitting it.
-  function townSvg({ on = [], reveal = null, revealLater = false, slice = false } = {}) {
+  // Storm night, for the prologue (Forge's addition for Iris to review): the
+  // tower has snapped and lies on the hill, its beacon dark, every window
+  // unlit, with low cloud and rain. Drawn over the same scene, in its palette.
+  const STORM = '<g class="storm-art" aria-hidden="true">' +
+    '<g class="storm-cloud" fill="#26313d"><ellipse cx="70" cy="30" rx="70" ry="16"/><ellipse cx="140" cy="20" rx="60" ry="14"/><ellipse cx="250" cy="28" rx="80" ry="17"/><ellipse cx="200" cy="44" rx="50" ry="9" opacity="0.8"/><ellipse cx="40" cy="50" rx="44" ry="8" opacity="0.7"/></g>' +
+    '<g class="storm-tower">' +
+    '<ellipse cx="163" cy="170" rx="24" ry="5" fill="rgba(12,18,26,0.3)"/>' +
+    '<rect x="140" y="158" width="40" height="11" rx="4.5" fill="#5b6878"/><rect x="140" y="156" width="40" height="8" rx="4" fill="#8d95a1"/>' +
+    '<path d="M147 158 L149.6 136 M173 158 L170.4 136" stroke="#9aa7b5" stroke-width="4.5" stroke-linecap="round"/>' +
+    '<path d="M149 146 L170 136 M171 146 L150.5 137" stroke="#5b6878" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M149.6 136 L147.4 131 M170.4 136 L173 132" stroke="#9aa7b5" stroke-width="3" stroke-linecap="round"/>' +
+    '<g transform="rotate(96 160 142)">' +
+    '<path d="M151 140 L156.5 72 M169 140 L163.5 72" stroke="#9aa7b5" stroke-width="4.5" stroke-linecap="round"/>' +
+    '<path d="M151.5 124 L167 110 M168.5 124 L153 110 M154 106 L165.5 94 M166 106 L154.5 94" stroke="#5b6878" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M160 72 V62" stroke="#9aa7b5" stroke-width="2.5" stroke-linecap="round"/><circle cx="160" cy="58" r="5" fill="#3a4552"/></g></g>' +
+    '<g class="storm-rain" stroke="#9aa7b5" stroke-width="1" stroke-linecap="round" opacity="0.28">' +
+    Array.from({ length: 34 }, (_, i) => { const x = (i * 97) % 330 - 5, y = (i * 53) % 200; return `<path d="M${x} ${y} l-5 12"/>`; }).join('') +
+    '</g></g>';
+  function townSvg({ on = [], reveal = null, revealLater = false, slice = false, storm = false } = {}) {
     const id = `tw${++uid}`;
     const wrap = document.createElement('div');
     wrap.innerHTML = `<svg class="town-svg" viewBox="0 0 320 220" preserveAspectRatio="xMidYMid ${slice ? 'slice' : 'meet'}" aria-hidden="true" focusable="false">${STORY_ART.town.split('{ID}').join(id)}</svg>`;
     const svg = wrap.firstChild;
     setTown(svg, on, reveal, revealLater);
+    if (storm) {
+      svg.classList.add('storm');
+      const fade = [...svg.querySelectorAll('rect')].find((r) => (r.getAttribute('fill') || '').includes('hero-fade'));
+      fade.insertAdjacentHTML('beforebegin', STORM);
+    }
     return svg;
   }
   function setTown(svg, on, reveal = null, revealLater = false) {
@@ -49,6 +72,7 @@
     el.setAttribute('aria-modal', 'true');
     el.innerHTML =
       '<div class="st-backdrop"></div><div class="st-dim"></div><div class="st-rings" aria-hidden="true"></div>' +
+      '<div class="st-top" aria-hidden="true"><span class="st-context"></span></div>' +
       '<div class="st-controls">' +
       '<button type="button" class="st-ff" aria-label="Fast forward" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l7 6-7 6zM13 6l7 6-7 6z"/></svg></button>' +
       '<button type="button" class="st-skip" aria-label="Skip scene">Skip<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l9 6-9 6z"/><rect x="16" y="6" width="2.6" height="12" rx="1"/></svg></button>' +
@@ -90,13 +114,18 @@
       const scene = run.scenes[run.si];
       el.setAttribute('aria-label', `Story: ${scene.title}`);
       const kind = run.opts.backdrop || scene.backdrop;
+      // Over the board or the map, a band holds the controls (so they never
+      // sit on the dimmed header) and says where you are.
+      q('.st-top').hidden = kind === 'town';
+      q('.st-context').textContent = run.opts.context || '';
       backdrop.innerHTML = '';
       backdrop.classList.remove('settle');
       backdrop.hidden = kind !== 'town';
       if (kind === 'town') {
         const epilogue = scene.trigger.type === 'epilogue';
-        const on = run.opts.town || (epilogue ? CHAPTER_IDS : scene.trigger.type === 'prologue' ? [] : ctx.townState());
-        backdrop.appendChild(townSvg({ on }));
+        const prologue = scene.trigger.type === 'prologue' && !run.opts.town;
+        const on = run.opts.town || (epilogue ? CHAPTER_IDS : prologue ? [] : ctx.townState());
+        backdrop.appendChild(townSvg({ on, storm: prologue }));
         if (epilogue && !run.opts.town) backdrop.classList.add('settle');
       }
       run.li = -1;
@@ -137,7 +166,9 @@
 
     function render() {
       const text = run.scenes[run.si].lines[run.li].text;
-      // The untyped rest is laid out but invisible, so lines never re-wrap as they type.
+      // The untyped rest is laid out but invisible, so lines never re-wrap as
+      // they type. Narrator lines are centred, so they show only what's typed.
+      if (card.classList.contains('narrator')) { textEl.innerHTML = `<span>${esc(text.slice(0, run.chars))}</span>`; return; }
       textEl.innerHTML = `<span>${esc(text.slice(0, run.chars))}</span><span style="visibility:hidden">${esc(text.slice(run.chars))}</span>`;
     }
     function typeStep() {
@@ -388,8 +419,8 @@
       container.appendChild(pc);
       const st = { pc, onGone, timer: setTimeout(() => dismissPostcard(false), ms) };
       postcardEl = st;
-      pc.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-      pc.addEventListener('click', (e) => { e.stopPropagation(); dismissPostcard(false); });
+      // Taps pass straight through to the map (game.js dismisses it on any tap),
+      // so it never blocks a circle.
       return st;
     }
     function dismissPostcard(now) {

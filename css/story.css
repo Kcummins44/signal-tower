@@ -37,6 +37,13 @@
 .town-svg .meteor.m3 { animation-delay: 4.6s; }
 @keyframes tl-meteor { 0% { stroke-dashoffset: 40; opacity: 1; } 10% { stroke-dashoffset: -40; opacity: 1; } 11%, 100% { stroke-dashoffset: -40; opacity: 0; } }
 
+/* Storm night (prologue): snapped tower, dark beacon, unlit windows, cloud and rain. */
+.town-svg.storm .waves, .town-svg.storm .links, .town-svg.storm .tower { display: none; }
+.town-svg.storm .h .win { fill: #3a4552; animation: none; }
+.town-svg.storm .star { opacity: 0.12; animation: none; }
+.town-svg .storm-rain { animation: st-rain 0.9s linear infinite; }
+@keyframes st-rain { from { transform: translate(0, -12px); } to { transform: translate(-5px, 0); } }
+
 /* ---------- Scene overlay ---------- */
 .story { position: fixed; inset: 0; z-index: 40; touch-action: none; }
 /* The town backdrop shows the whole scene in the space above the card, its
@@ -63,6 +70,8 @@
 @keyframes st-ring-in { from { transform: scale(1.15); opacity: 0; } }
 @keyframes st-ring-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
+.st-top { position: absolute; left: 0; right: 0; top: 0; height: calc(68px + var(--safe-t)); padding: var(--safe-t) 132px 0 20px; display: flex; align-items: center; background: rgba(27, 35, 45, 0.97); border-bottom: 1px solid var(--line); z-index: 1; }
+.st-context { font-size: 0.9375rem; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-controls { position: absolute; top: calc(12px + var(--safe-t)); right: 16px; display: flex; gap: 10px; z-index: 2; }
 .st-controls button {
   height: 44px; border-radius: 22px; border: 1px solid var(--line); background: rgba(38, 49, 61, 0.94);
@@ -84,23 +93,23 @@
 }
 .st-card:focus { outline: none; }
 /* Keyboard focus: a quiet ring, so the card still reads as Iris's card. */
-.st-card:focus-visible { outline: 2px solid rgba(127, 224, 208, 0.45); outline-offset: 3px; }
+.st-card:focus-visible { outline: 1.5px solid rgba(127, 224, 208, 0.3); outline-offset: 2px; }
+.story-card:focus, .story-card:focus-visible { outline: none; }
 .story.out .st-card { animation: st-card-out 200ms ease-in both; }
 @keyframes st-card-in { from { opacity: 0; transform: translateY(24px); } }
 @keyframes st-card-out { to { opacity: 0; transform: translateY(16px); } }
-.st-card.top { bottom: auto; top: calc(68px + var(--safe-t)); }
+/* Raised: below the top band, with room for the portrait that overlaps the card's top. */
+.st-card.top { bottom: auto; top: calc(112px + var(--safe-t)); }
 .st-portrait { position: absolute; left: 18px; top: -38px; width: 76px; height: 76px; border-radius: 50%; animation: st-portrait-in 160ms ease-out 140ms both; }
-.st-card.top .st-portrait { top: 14px; }
 .st-portrait svg { width: 100%; height: 100%; display: block; }
 .st-portrait.swap svg { animation: fade-in 120ms ease-out; }
 @keyframes st-portrait-in { from { transform: scale(0.9); opacity: 0; } }
-.st-head { display: flex; flex-direction: column; justify-content: center; min-height: 38px; margin: 0 0 6px 86px; }
-.st-card.top .st-head { min-height: 52px; }
+.st-head { display: flex; flex-direction: column; justify-content: center; min-height: 38px; margin: 0 0 2px 86px; }
 .st-head.swap { animation: fade-in 150ms ease-out; }
 .st-name { font-size: 0.9375rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sc, var(--accent)); line-height: 1.2; }
 .st-role { font-size: 0.75rem; font-weight: 600; color: var(--muted); line-height: 1.3; }
 .st-text { display: block; font-size: 1.0625rem; line-height: 1.5625rem; font-weight: 500; min-height: calc(3 * 1.5625rem); max-height: calc(5 * 1.5625rem); overflow-y: auto; white-space: pre-wrap; }
-.st-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; min-height: 16px; }
+.st-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; min-height: 16px; }
 .st-dots { display: flex; gap: 6px; align-items: center; }
 .st-dots i { width: 6px; height: 6px; border-radius: 3px; background: #4a5868; }
 .st-dots i.cur { width: 16px; background: var(--accent); }
@@ -108,10 +117,15 @@
 .st-card.typed .st-next { opacity: 1; animation: st-bob 1s ease-in-out infinite; }
 @keyframes st-bob { 0%, 100% { transform: none; } 50% { transform: translateY(3px); } }
 /* Narrator: centred text under a small tower glyph, no portrait or name. */
-.st-glyph { display: none; align-self: center; width: 28px; height: 28px; margin-bottom: 4px; }
+/* The glyph takes exactly the header's height, so narrator and speaker cards match. */
+.st-glyph { display: none; align-self: center; width: 28px; height: 28px; margin: 6px 0 6px; flex: none; }
 .st-card.narrator .st-glyph { display: block; }
 .st-card.narrator .st-portrait, .st-card.narrator .st-head { display: none; }
-.st-card.narrator .st-text { text-align: center; font-weight: 600; min-height: calc(2 * 1.5625rem); display: flex; align-items: center; justify-content: center; }
+.st-card.narrator { padding-left: 14px; padding-right: 14px; }
+.st-card.narrator .st-text { text-align: center; font-weight: 600; letter-spacing: -0.005em; display: flex; align-items: center; justify-content: center; }
+
+/* Narrow phones: narrator lines at 16px (the spec's floor) so the prologue's first line fits on one line. */
+@media (max-width: 430px) { .st-card.narrator .st-text { font-size: 1rem; } }
 
 /* Phone landscape: narrower card, inline portrait, text beside it. */
 @media (max-height: 560px) and (orientation: landscape) {
@@ -120,12 +134,15 @@
   .story.out .st-card { animation: st-card-out-l 200ms ease-in both; }
   @keyframes st-card-out-l { to { opacity: 0; } }
   .st-card { animation-name: fade-in; }
-  .st-portrait, .st-card.top .st-portrait { left: 16px; top: 16px; width: 56px; height: 56px; }
+  .st-portrait { left: 16px; top: 16px; width: 56px; height: 56px; }
+  .st-glyph { width: 16px; height: 16px; margin: 0 0 4px; }
+  .st-top { height: calc(60px + var(--safe-t)); }
   .st-head, .st-card.top .st-head { flex-direction: row; justify-content: flex-start; align-items: baseline; gap: 10px; min-height: 0; margin: 0 0 4px 0; }
   .st-name { font-size: 0.8125rem; }
   .st-text { font-size: 1rem; line-height: 1.4375rem; min-height: calc(2 * 1.4375rem); max-height: calc(4 * 1.4375rem); }
-  .st-card.narrator { padding-left: 20px; }
-  .st-card.top { top: calc(64px + var(--safe-t)); }
+  .st-card.narrator { padding-left: 20px; padding-right: 20px; }
+  .st-card.top { top: calc(70px + var(--safe-t)); }
+  .st-card.narrator .st-text { min-height: calc(2 * 1.4375rem); }
 }
 /* Desktop. */
 @media (min-width: 900px) and (min-height: 600px) {
@@ -133,11 +150,12 @@
   .st-card { animation-name: fade-in; }
   .st-portrait { width: 88px; height: 88px; top: -44px; }
   .st-head { margin-left: 100px; min-height: 44px; }
-  .st-card.top .st-head { min-height: 74px; }
+  .st-glyph { margin: 8px 0 10px; }
   .st-name { font-size: 1.0625rem; }
   .st-role { font-size: 0.875rem; }
   .st-text { font-size: 1.1875rem; line-height: 1.75rem; min-height: calc(2 * 1.75rem); max-height: calc(5 * 1.75rem); }
   .st-card.narrator .st-text { min-height: calc(2 * 1.75rem); }
+  .st-card.top { top: calc(120px + var(--safe-t)); }
 }
 
 /* ---------- Level postcard (map) ---------- */
@@ -145,7 +163,7 @@
   position: absolute; left: 50%; bottom: calc(96px + var(--safe-b)); z-index: 5; width: min(var(--col, 340px), 340px); max-width: calc(100vw - 32px);
   min-height: 88px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 12px 16px;
   background: rgba(38, 49, 61, 0.97); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
-  animation: pc-in 220ms var(--st-ease) both; cursor: pointer;
+  animation: pc-in 220ms var(--st-ease) both; pointer-events: none;
 }
 .postcard.out { animation: pc-out 200ms ease-in both; }
 @keyframes pc-in { from { opacity: 0; transform: translate(-50%, 16px); } }
@@ -228,6 +246,7 @@
   .town-svg .tl.reveal .tl-on { animation: none; }
   .town-svg .meteor { animation: none; stroke-dasharray: none; opacity: 0.8; }
   .st-backdrop.settle .town-svg { animation: none; }
+  .town-svg .storm-rain { animation: none; }
   .st-card, .st-card.top { animation: fade-in 150ms ease-out both; transition: none; }
   .story.out .st-card { animation: st-fade-out 150ms ease-in both; }
   .st-portrait, .st-portrait.swap svg, .st-head.swap { animation: none; }

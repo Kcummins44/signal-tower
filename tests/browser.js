@@ -1316,6 +1316,188 @@ async function playLevel(page, sol, useDrag = true) {
     }
   }
 
+  // Story fix round 1 (Probe's cycle 1 report): the level 38 postcard, map
+  // taps during a chapter close, a stale postcard, the card's height,
+  // reduced-motion banners, Esc, banner replays by keyboard, and the
+  // landing ring after the Story log.
+  {
+    const SZ = {
+      desktop: { viewport: { width: 1280, height: 800 } },
+      phone: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
+      landscape: { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
+    };
+    const save = (page, n, extra = {}) => page.evaluate(([n, extra]) => {
+      const stars = {}; for (let i = 0; i < n; i++) stars[i] = 3;
+      const lv = (c) => LEVELS.map((l, i) => ((l.chapter || 'basics') === c ? i : -1)).filter((i) => i >= 0);
+      const seen = {};
+      for (const sc of STORY.scenes) {
+        const t = sc.trigger;
+        const ok = t.type === 'prologue' ? true : t.type === 'chapterStart' ? lv(t.chapter)[0] < n : t.type === 'chapterEnd' ? lv(t.chapter).slice(-1)[0] < n
+          : t.type === 'levelStart' ? t.level - 1 < n : t.type === 'epilogue' ? n >= LEVELS.length : false;
+        if (ok) seen[sc.id] = true;
+      }
+      const done = STORY.town.map((t) => t.chapter).filter((c) => lv(c).slice(-1)[0] < n);
+      localStorage.setItem('signal-tower-v2', JSON.stringify({ stars, best: {}, sound: false, seen: { 'callout-0': true }, road: n, story: { seen, townShown: done, offered: true, on: true, speed: 'normal', ...extra } }));
+    }, [n, extra]);
+    const reload = async (page) => { await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForFunction(() => window.__signalTest && window.__signalPerf.frames > 5); await page.waitForTimeout(250); };
+    const S = (page) => page.evaluate(() => window.__signalTest.story.state);
+    const win = async (page, i) => {
+      await page.evaluate((i) => { const g = window.__signalTest; g.startLevel(i); for (const t of g.state.level.solutions[0]) { g.selectType(t.length > 2 ? 'dish' : 'mast'); g.act(t[0], t[1]); for (let f = 0; f < (t[2] || 0); f++) g.act(t[0], t[1]); } }, i);
+      await page.waitForSelector('#screen-win:not([hidden])');
+      await page.waitForTimeout(500);
+    };
+    const centre = (page, sel) => page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, sel);
+    const tapAt = async (page, p) => { if ((await page.evaluate(() => navigator.maxTouchPoints)) > 0) await page.touchscreen.tap(p.x, p.y); else await page.mouse.click(p.x, p.y); };
+
+    // 1. The level 38 postcard never covers circle 38; one tap enters it.
+    for (const label of ['phone', 'desktop', 'landscape']) {
+      const { page: p, ctx } = await open(browser, `fix1-${label}`, SZ[label], { story: true });
+      await save(p, 36);
+      await p.evaluate(() => { const v = JSON.parse(localStorage.getItem('signal-tower-v2')); v.story.seen['mixed.meteor'] = true; localStorage.setItem('signal-tower-v2', JSON.stringify(v)); });
+      await reload(p);
+      await win(p, 36); await p.click('#win-next');
+      await p.waitForSelector('.map-node.arrive[data-level="37"]', { timeout: 6000 }).catch(() => {});
+      await p.waitForTimeout(400);
+      const hit = await p.evaluate(() => {
+        const n = document.querySelector('.map-node[data-level="37"]'), r = n.getBoundingClientRect(), pc = document.querySelector('.postcard');
+        const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        const pr = pc && pc.getBoundingClientRect();
+        return { postcard: !!pc, onNode: !!(el && el.closest('.map-node[data-level="37"]')), clear: !pr || r.bottom <= pr.top };
+      });
+      check(hit.postcard && hit.onNode && hit.clear, `${label}: after a first win on level 37, the postcard leaves circle 38 clear and tappable (${JSON.stringify(hit)})`);
+      await tapAt(p, await centre(p, '.map-node[data-level="37"]'));
+      await p.waitForTimeout(400);
+      check((await st(p))?.index === 37, `${label}: one tap on circle 38 enters it`);
+      await ctx.close();
+    }
+
+    // 2. Map taps during a chapter close fast-forward it; nothing is skipped or reordered.
+    {
+      const { page: p, ctx } = await open(browser, 'fix2', SZ.phone, { story: true });
+      await save(p, 14); await reload(p);
+      await win(p, 14); await p.click('#win-next');
+      await p.waitForTimeout(600); // the road is drawing
+      await tapAt(p, await centre(p, '#map-play'));
+      await p.waitForTimeout(300);
+      let m = await p.evaluate(() => ({ level: window.__signalTest.state?.index ?? null, map: !document.getElementById('screen-levels').hidden, pc: !!document.querySelector('.postcard'), locked: document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked') }));
+      check(m.level === null && m.map && m.pc && m.locked, `tapping Play level 16 while the road draws only fast-forwards it to the postcard, Quiet Hours still locked (${JSON.stringify(m)})`);
+      await tapAt(p, await centre(p, '#levels-back'));
+      await p.waitForTimeout(400);
+      const sc = await S(p);
+      check(sc.scene === 'basics.end' && (await st(p)) === null, `a second tap (on Back) moves on to "The Tower Stands", without leaving the map (${sc.scene})`);
+      await p.keyboard.press('Escape');
+      await p.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+      await p.waitForTimeout(1300);
+      await p.touchscreen.tap(195, 300);
+      await p.waitForSelector('.map-node.arrive[data-level="15"]', { timeout: 6000 }).catch(() => {});
+      const sv = await p.evaluate(() => JSON.parse(localStorage.getItem('signal-tower-v2')).story.seen);
+      check(sv['basics.end'] && !sv['quiet.start'], 'the close finishes in order and level 16 has not started');
+      await tapAt(p, await centre(p, '#map-play')); await p.waitForTimeout(500);
+      check((await st(p))?.index === 15 && (await S(p)).scene === 'quiet.start', 'after landing, Play level 16 starts it, and Juniper\'s opening plays');
+      // A chapter close that was left (reload mid-close): Continue goes by the map first.
+      await save(p, 19, { seen: Object.fromEntries((await p.evaluate(() => STORY.scenes.map((x) => x.id))).filter((id) => !['busy.end', 'dish.start', 'dish.end', 'relay.start', 'relay.dad', 'relay.end', 'panel.start', 'panel.end', 'mixed.start', 'mixed.meteor', 'mixed.end', 'epilogue'].includes(id)).map((id) => [id, true])) });
+      await p.evaluate(() => { const v = JSON.parse(localStorage.getItem('signal-tower-v2')); for (let i = 19; i < 23; i++) v.stars[i] = 3; v.road = 23; localStorage.setItem('signal-tower-v2', JSON.stringify(v)); });
+      await reload(p);
+      await p.click('#title-play'); await p.waitForTimeout(400);
+      const cont = await p.evaluate(() => ({ map: !document.getElementById('screen-levels').hidden, level: window.__signalTest.state?.index ?? null }));
+      const closed = await p.waitForFunction(() => window.__signalTest.story.state.scene === 'busy.end', null, { timeout: 8000 }).then(() => true).catch(() => false);
+      check(cont.map && cont.level === null && closed, `with Rush Hour's close still to play, Continue opens the map and plays it first (${JSON.stringify(cont)})`);
+      await ctx.close();
+    }
+
+    // 3. No stale postcard when the map reopens.
+    {
+      const { page: p, ctx } = await open(browser, 'fix3', SZ.phone, { story: true });
+      await save(p, 2); await reload(p);
+      await win(p, 2); await p.click('#win-next');
+      await p.waitForSelector('.map-node.arrive[data-level="3"]', { timeout: 6000 });
+      await p.waitForTimeout(100);
+      await tapAt(p, await centre(p, '.map-node.arrive'));
+      await p.waitForTimeout(350);
+      const gone = await p.evaluate(() => !document.querySelector('.postcard'));
+      await win(p, 3); await p.click('#win-next'); await p.waitForTimeout(300);
+      const stale = await p.evaluate(() => [...document.querySelectorAll('.postcard')].map((x) => x.textContent));
+      check(gone && !stale.some((t) => t.startsWith('Level 3,')), `leaving the map clears its postcard; the next visit never shows the old one (${JSON.stringify(stale)})`);
+      await ctx.close();
+    }
+
+    // 4. The card keeps one height for narrator and speaker lines.
+    for (const label of ['phone', 'landscape', 'desktop']) {
+      const { page: p, ctx } = await open(browser, `fix4-${label}`, SZ[label], { story: true });
+      await p.evaluate(() => window.__signalTest.story.play(['prologue'], { replay: true, backdrop: 'board' }));
+      const hs = [];
+      for (let i = 0; i < 4; i++) {
+        await p.waitForTimeout(350);
+        if (!(await S(p)).typed) { await p.keyboard.press('Enter'); await p.waitForTimeout(80); }
+        hs.push(await p.evaluate(() => Math.round(document.querySelector('.st-card').getBoundingClientRect().height)));
+        await p.keyboard.press('Enter');
+      }
+      check(new Set(hs).size === 1, `${label}: narrator and speaker lines use one card height (${hs.join(', ')})`);
+      const lines = await p.evaluate(() => { const t = document.querySelector('.st-text'); return t.getClientRects().length; });
+      await ctx.close();
+    }
+    {
+      const { page: p, ctx } = await open(browser, 'fix4-wrap', SZ.phone, { story: true });
+      await p.click('#title-play'); await p.waitForTimeout(300); await p.keyboard.press('Enter'); await p.waitForTimeout(100);
+      await p.waitForFunction(() => window.__signalTest.story.state.typed);
+      const one = await p.evaluate(() => { const t = document.querySelector('.st-text span'); return Math.round(t.getBoundingClientRect().height / parseFloat(getComputedStyle(t.parentNode).lineHeight)); });
+      const storm = await p.evaluate(() => ({ storm: !!document.querySelector('.st-backdrop .town-svg.storm .storm-tower'), tower: getComputedStyle(document.querySelector('.st-backdrop .town-svg .tower')).display, win: getComputedStyle(document.querySelector('.st-backdrop .town-svg .h .win')).fill }));
+      check(one === 1, `phone: "Wren Hollow, the night after the big storm." fits on one line (${one} lines)`);
+      check(storm.storm && storm.tower === 'none' && storm.win === 'rgb(58, 69, 82)', `the prologue shows the storm night: tower down, windows dark (${JSON.stringify(storm)})`);
+      await p.screenshot({ path: `${OUT}/story-prologue-storm-phone.png` });
+      await ctx.close();
+    }
+
+    // 5. Reduced motion: the next chapter stays locked until its close is over.
+    {
+      const { page: p, ctx } = await open(browser, 'fix5', { ...SZ.phone, reducedMotion: 'reduce' }, { story: true });
+      await save(p, 14); await reload(p);
+      await win(p, 14); await p.click('#win-next');
+      await p.waitForFunction(() => window.__signalTest.story.state.scene === 'basics.end', null, { timeout: 6000 }).catch(() => {});
+      const during = await p.evaluate(() => ({ banner: document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), node: document.querySelector('.map-node[data-level="15"]').classList.contains('locked') }));
+      await p.keyboard.press('Escape');
+      await p.waitForSelector('.story-card', { timeout: 3000 }).catch(() => {});
+      const card = await p.evaluate(() => document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'));
+      await p.waitForTimeout(1300); await p.touchscreen.tap(195, 300); await p.waitForTimeout(500);
+      const after = await p.evaluate(() => ({ banner: !document.querySelector('.map-banner[data-chapter="1"]').classList.contains('locked'), arrive: document.querySelector('.map-node.arrive')?.dataset.level }));
+      check(during.banner && during.node && card && after.banner && after.arrive === '15', `reduced motion: Quiet Hours stays locked through the close and opens after the town card (${JSON.stringify({ during, card, after })})`);
+      await ctx.close();
+    }
+
+    // 6. Esc on Settings, the Story log, a transcript and the win screen; banners by keyboard; the landing ring after the log.
+    {
+      const { page: p, ctx } = await open(browser, 'fix6', SZ.desktop, { story: true });
+      await save(p, 15); await reload(p);
+      const vis = (id) => p.evaluate((id) => !document.getElementById(id).hidden, id);
+      await p.click('#title-settings'); await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+      const e1 = await vis('screen-title');
+      await p.click('#title-levels'); await p.waitForTimeout(300); await p.click('#map-story'); await p.waitForTimeout(200);
+      await p.click('.story-row[data-scene="basics.end"] .sr-read'); await p.waitForTimeout(100);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+      const e2 = (await vis('screen-story')) && !(await vis('story-transcript'));
+      await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+      const e3 = await vis('screen-levels');
+      check(e1 && e2 && e3, `Esc closes Settings (${e1}), a transcript (${e2}) and the Story log (${e3})`);
+      // Banner replay by keyboard.
+      await p.focus('.map-banner.replay[data-chapter="0"]');
+      const role = await p.getAttribute('.map-banner.replay[data-chapter="0"]', 'role');
+      await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+      check(role === 'button' && (await S(p)).scene === 'basics.start', 'a chapter banner can be focused and replayed with Enter');
+      await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+      // Win screen Esc goes to the map (level 16's opening already seen).
+      await save(p, 16); await reload(p);
+      await win(p, 15);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(400);
+      check(await vis('screen-levels'), 'Esc on the win screen goes to the map');
+      await p.waitForSelector('.map-node.arrive[data-level="16"]', { timeout: 6000 }).catch(() => {});
+      // The landing ring comes back after a trip to the Story log.
+      await p.click('#map-story'); await p.waitForTimeout(200); await p.click('#story-back'); await p.waitForTimeout(600);
+      const ring = await p.evaluate(() => document.querySelector('.map-node.arrive')?.dataset.level);
+      check(ring === '16', `after the Story log, the map lands on level 17 again with its ring (${ring})`);
+      await ctx.close();
+    }
+  }
+
   // Regression: damaged saves fall back safely.
   for (const bad of ['{"stars":null}', '{"stars":[1,2],"best":"x","seen":5}', '[]', 'not json', '{"stars":{"0":"3","1":99,"2":2}}']) {
     const { page: c } = await open(browser, 'badsave', { viewport: { width: 800, height: 600 } });
